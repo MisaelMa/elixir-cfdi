@@ -44,7 +44,6 @@ defmodule XmlTest do
       Version: "3.2",
       Serie: "A",
       Folio: "123456",
-      Fecha: "2016-12-01T12:00:00",
       FormaPago: "01",
       CondicionesDePago: "Contado",
       SubTotal: "100.00",
