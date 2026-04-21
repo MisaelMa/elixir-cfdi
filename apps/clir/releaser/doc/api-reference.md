@@ -1,0 +1,44 @@
+# releaser v0.1.0 - API Reference
+
+## Modules
+
+- Core
+  - [Releaser](Releaser.md): Monorepo versioning, changelog, and Hex publishing for Elixir.
+  - [Releaser.App](Releaser.App.md): Struct representing a discovered app in the workspace.
+  - [Releaser.Config](Releaser.Config.md): Configuration schema and defaults for Releaser.
+  - [Releaser.Version](Releaser.Version.md): SemVer version parsing, bumping, and pre-release tag management.
+  - [Releaser.Workspace](Releaser.Workspace.md): Discovers apps in a poncho/umbrella project.
+
+- Dependency Graph
+  - [Releaser.Cascade](Releaser.Cascade.md): Plans cascade version bumps through the dependency graph.
+  - [Releaser.Graph](Releaser.Graph.md): Dependency graph building and topological sorting for monorepo apps.
+
+- Publishing
+  - [Releaser.HexStatus](Releaser.HexStatus.md): Compares local app versions against published versions on Hex.
+  - [Releaser.Publisher](Releaser.Publisher.md): Orchestrates publishing multiple apps to Hex in topological order.
+
+- Changelog
+  - [Releaser.Changelog](Releaser.Changelog.md): Generates changelogs from git commits using conventional commit prefixes.
+  - [Releaser.FileSync](Releaser.FileSync.md): Syncs version numbers across multiple files.
+
+- Hooks
+  - [Releaser.Hooks.ChangelogHook](Releaser.Hooks.ChangelogHook.md): Built-in post-hook that generates/updates CHANGELOG.md after a bump.
+  - [Releaser.Hooks.GitTag](Releaser.Hooks.GitTag.md): Built-in post-hook that creates a git commit and tag after bumping.
+  - [Releaser.Hooks.PostHook](Releaser.Hooks.PostHook.md): Behaviour for post-bump hooks.
+  - [Releaser.Hooks.PreHook](Releaser.Hooks.PreHook.md): Behaviour for pre-bump hooks.
+
+- Git
+  - [Releaser.Git](Releaser.Git.md): Git helper operations for changelog generation and post-bump hooks.
+
+- Utilities
+  - [Releaser.UI](Releaser.UI.md): ANSI terminal output helpers for releaser mix tasks.
+
+## Mix Tasks
+
+- Mix Tasks
+  - [mix releaser.bump](Mix.Tasks.Releaser.Bump.md): Bumps the semver version of an app and cascades patch bumps to dependents.
+  - [mix releaser.changelog](Mix.Tasks.Releaser.Changelog.md): Generates a changelog entry from git commits using conventional commit prefixes.
+  - [mix releaser.graph](Mix.Tasks.Releaser.Graph.md): Displays the dependency graph of all apps in the workspace.
+  - [mix releaser.publish](Mix.Tasks.Releaser.Publish.md): Publishes all monorepo apps to Hex respecting the dependency graph.
+  - [mix releaser.status](Mix.Tasks.Releaser.Status.md): Shows which apps have version differences compared to what's published on Hex.
+

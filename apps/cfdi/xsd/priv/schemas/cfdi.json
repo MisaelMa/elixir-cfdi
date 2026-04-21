@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "Version": { "type": "string" },
+    "Serie": { "type": "string" },
+    "Folio": { "type": "string" }
+  },
+  "required": ["Version"]
+}

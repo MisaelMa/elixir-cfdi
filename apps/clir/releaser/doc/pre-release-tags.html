@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="releaser v0.1.0">
+
+
+    <title>Pre-release Tags — releaser v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-02004068.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+releaser
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of releaser</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Pre-release Tags</h1>
+
+<a href="pre-release-tags.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/MisaelMa/releaser/blob/main/guides/pre-release-tags.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Releaser supports the full SemVer 2.0 pre-release lifecycle. This guide
+explains how tags work, when to use each one, and the rules behind them.</p><h2 id="why-pre-release-tags" class="section-heading"><a href="#why-pre-release-tags" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Why pre-release tags?</span></h2><p>When you're developing a new feature across multiple packages, you don't
+want to publish stable versions until everything is ready. Pre-release
+tags let you:</p><ul><li>Publish test versions to Hex without affecting stable users</li><li>Iterate quickly (<code class="inline">dev.1 → dev.2 → dev.3</code>) without burning version numbers</li><li>Promote through stages (<code class="inline">dev → beta → rc → stable</code>) as confidence grows</li><li>Keep the same base version through the entire cycle</li></ul><h2 id="the-lifecycle" class="section-heading"><a href="#the-lifecycle" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">The lifecycle</span></h2><p>Here's a real-world example. You're adding CartaPorte 3.1 support to
+<code class="inline">cfdi_complementos</code>, currently at <code class="inline">4.0.17</code>:</p><pre><code class="makeup bash" translate="no"><span class=""># Start development — creates first dev pre-release
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos patch --tag dev
+</span><span class=""># 4.0.17 → 4.0.18-dev.1
+</span><span class="">
+</span><span class=""># Fixed a bug in the XSD validation, bump again
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos patch --tag dev
+</span><span class=""># 4.0.18-dev.1 → 4.0.18-dev.2
+</span><span class="">
+</span><span class=""># Another fix
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos patch --tag dev
+</span><span class=""># 4.0.18-dev.2 → 4.0.18-dev.3
+</span><span class="">
+</span><span class=""># Feature is complete, promote to beta for QA
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos patch --tag beta
+</span><span class=""># 4.0.18-dev.3 → 4.0.18-beta.1
+</span><span class=""># Notice: base stays at 4.0.18!
+</span><span class="">
+</span><span class=""># QA found a bug, fix and bump
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos patch --tag beta
+</span><span class=""># 4.0.18-beta.1 → 4.0.18-beta.2
+</span><span class="">
+</span><span class=""># QA approved, promote to release candidate
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos patch --tag rc
+</span><span class=""># 4.0.18-beta.2 → 4.0.18-rc.1
+</span><span class="">
+</span><span class=""># Everything looks good — release!
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_complementos release
+</span><span class=""># 4.0.18-rc.1 → 4.0.18
+</span></code></pre><p>The entire cycle used a single base version: <code class="inline">4.0.18</code>.</p><h2 id="rules" class="section-heading"><a href="#rules" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Rules</span></h2><p>There are three rules that control how tags behave:</p><h3 id="rule-1-clean-version-tag-bump-base-add-tag" class="section-heading"><a href="#rule-1-clean-version-tag-bump-base-add-tag" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Rule 1: Clean version + tag = bump base + add tag</span></h3><p>Starting from a stable version, adding a tag bumps the base first:</p><pre><code class="makeup bash" translate="no"><span class="gp unselectable">$ </span><span class="">mix releaser.bump my_app patch --tag dev
+</span><span class=""># 1.0.0 → 1.0.1-dev.1
+</span><span class="">#          ^^^^^ bumped
+</span><span class="">
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump my_app minor --tag dev
+</span><span class=""># 1.0.0 → 1.1.0-dev.1
+</span><span class="">#          ^^^^^ bumped
+</span></code></pre><p>This ensures the dev version is <strong>ahead</strong> of the current stable.</p><h3 id="rule-2-same-tag-increment-number-only" class="section-heading"><a href="#rule-2-same-tag-increment-number-only" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Rule 2: Same tag = increment number only</span></h3><p>When you bump with the same tag, only the number increments. The base stays:</p><pre><code class="makeup bash" translate="no"><span class="gp unselectable">$ </span><span class="">mix releaser.bump my_app patch --tag dev
+</span><span class=""># 1.0.1-dev.1 → 1.0.1-dev.2
+</span><span class="">#                         ^ only this changes
+</span><span class="">
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump my_app patch --tag dev
+</span><span class=""># 1.0.1-dev.2 → 1.0.1-dev.3
+</span></code></pre><p>This is for iterating within a stage. You're not done with dev, you're
+just making more dev fixes.</p><h3 id="rule-3-different-tag-keep-base-switch-tag" class="section-heading"><a href="#rule-3-different-tag-keep-base-switch-tag" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Rule 3: Different tag = keep base, switch tag</span></h3><p>When you change tags (promote), the base version stays the same:</p><pre><code class="makeup bash" translate="no"><span class="gp unselectable">$ </span><span class="">mix releaser.bump my_app patch --tag beta
+</span><span class=""># 1.0.1-dev.3 → 1.0.1-beta.1
+</span><span class="">#  ^^^^^ same     ^^^^^^ new tag
+</span><span class="">
+</span><span class="gp unselectable">$ </span><span class="">mix releaser.bump my_app patch --tag rc
+</span><span class=""># 1.0.1-beta.2 → 1.0.1-rc.1
+</span><span class="">#  ^^^^^ same      ^^^^ new tag
+</span></code></pre><p>This makes sense because promoting from dev to beta doesn't change the
+code — it just changes the confidence level.</p><h2 id="semver-ordering" class="section-heading"><a href="#semver-ordering" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">SemVer ordering</span></h2><p>Hex respects SemVer 2.0 ordering. Pre-release versions are <strong>always less
+than</strong> the stable version with the same number:</p><pre><code class="makeup elixir" translate="no"><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span><span class="o">-</span><span class="n">alpha</span><span class="o">.</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span><span class="o">-</span><span class="n">beta</span><span class="o">.</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span><span class="o">-</span><span class="n">rc</span><span class="o">.</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span></code></pre><blockquote><p>Tags are ordered alphabetically: <code class="inline">alpha &lt; beta &lt; dev &lt; rc</code>.
+The stable version <code class="inline">4.0.18</code> is always greater than any <code class="inline">4.0.18-*</code>.</p></blockquote><p>This means users with <code class="inline">{:my_app, &quot;~&gt; 4.0&quot;}</code> will <strong>not</strong> get pre-release
+versions unless they explicitly opt in with <code class="inline">{:my_app, &quot;~&gt; 4.0.18-dev&quot;}</code>.</p><h2 id="common-tags" class="section-heading"><a href="#common-tags" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Common tags</span></h2><table><thead><tr><th style="text-align: left;">Tag</th><th style="text-align: left;">When to use</th><th style="text-align: left;">Who installs it</th></tr></thead><tbody><tr><td style="text-align: left;"><code class="inline">dev</code></td><td style="text-align: left;">Active development, things may break</td><td style="text-align: left;">Only you and your CI</td></tr><tr><td style="text-align: left;"><code class="inline">alpha</code></td><td style="text-align: left;">First round of internal testing</td><td style="text-align: left;">Internal team</td></tr><tr><td style="text-align: left;"><code class="inline">beta</code></td><td style="text-align: left;">Feature-complete, looking for bugs</td><td style="text-align: left;">Adventurous early adopters</td></tr><tr><td style="text-align: left;"><code class="inline">rc</code></td><td style="text-align: left;">Release candidate, should be stable</td><td style="text-align: left;">Anyone willing to test</td></tr></tbody></table><p>You can use any string as a tag. These are just conventions.</p><h2 id="with-cascade" class="section-heading"><a href="#with-cascade" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">With cascade</span></h2><p>When you bump an app with a tag, cascaded dependents get a <strong>plain patch
+bump</strong> (no tag). This is intentional — only the app you're actively
+developing gets the pre-release tag:</p><pre><code class="makeup bash" translate="no"><span class="gp unselectable">$ </span><span class="">mix releaser.bump cfdi_csd patch --tag dev --dry-run
+</span><span class="">
+</span><span class="">Version changes:
+</span><span class="">  cfdi_csd                  4.0.16 → 4.0.17-dev.1   (direct)
+</span><span class="">  cfdi_xml                  4.0.18 → 4.0.19          (cascade)  ← no tag
+</span><span class="">  sat_auth                  1.0.1  → 1.0.2           (cascade)  ← no tag
+</span></code></pre><h2 id="with-publishing" class="section-heading"><a href="#with-publishing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">With publishing</span></h2><p><a href="Mix.Tasks.Releaser.Status.html"><code class="inline">mix releaser.status</code></a> shows pre-release versions as a distinct status:</p><pre><code class="makeup elixir" translate="no"><span class="nc">Package</span><span class="w">              </span><span class="nc">Local</span><span class="w">            </span><span class="nc">Hex</span><span class="w">         </span><span class="nc">Status</span><span class="w">
+</span><span class="n">cfdi_complementos</span><span class="w">    </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="mi">3</span><span class="w">     </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">17</span><span class="w">      </span><span class="n">pre</span><span class="o">-</span><span class="n">release</span><span class="w">
+</span><span class="n">cfdi_xml</span><span class="w">             </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">19</span><span class="w">           </span><span class="mf">4.0</span><span class="o">.</span><span class="mi">18</span><span class="w">      </span><span class="n">ahead</span></code></pre><p>Pre-release versions are publishable to Hex but won't be installed by
+default by users who have <code class="inline">~&gt;</code> version constraints.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="getting-started.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Getting Started
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="publishing-to-hex.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Publishing to Hex
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/releaser/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/releaser/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/releaser/0.1.0/show/guides/pre-release-tags.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="releaser.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

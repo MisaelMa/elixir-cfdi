@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="releaser v0.1.0">
+
+
+    <title>Releaser.Config — releaser v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-02004068.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+releaser
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of releaser</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">Releaser.<wbr>Config</span> 
+      <small class="app-vsn" translate="no">(releaser v0.1.0)</small>
+
+    </h1>
+
+<a href="Releaser.Config.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/MisaelMa/releaser/blob/main/lib/releaser/config.ex#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Configuration schema and defaults for Releaser.</p><p>All configuration lives under the <code class="inline">:releaser</code> key in your root <code class="inline">mix.exs</code> project config.</p><h2 id="module-options" class="section-heading"><a href="#module-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Options</span></h2><ul><li><code class="inline">:apps_root</code> — Root directory containing your apps. Default: <code class="inline">&quot;apps&quot;</code></li><li><code class="inline">:version_files</code> — List of <code class="inline">{glob_or_path, regex}</code> tuples for multi-file version sync</li><li><code class="inline">:changelog</code> — Changelog configuration (see below)</li><li><code class="inline">:hooks</code> — Pre/post hook modules (see below)</li><li><code class="inline">:publisher</code> — Hex publishing configuration (see below)</li></ul><h2 id="module-changelog-options" class="section-heading"><a href="#module-changelog-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Changelog options</span></h2><ul><li><code class="inline">:anchors</code> — Map of commit prefix to changelog section.
+Default: <code class="inline">%{&quot;feat&quot; =&gt; &quot;Added&quot;, &quot;fix&quot; =&gt; &quot;Fixed&quot;, &quot;refactor&quot; =&gt; &quot;Changed&quot;, &quot;docs&quot; =&gt; &quot;Documentation&quot;, &quot;perf&quot; =&gt; &quot;Performance&quot;, &quot;breaking&quot; =&gt; &quot;Breaking Changes&quot;}</code></li><li><code class="inline">:path</code> — Path to CHANGELOG.md. Default: <code class="inline">&quot;CHANGELOG.md&quot;</code></li><li><code class="inline">:format</code> — <code class="inline">:keepachangelog</code> (default)</li></ul><h2 id="module-hooks-options" class="section-heading"><a href="#module-hooks-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Hooks options</span></h2><ul><li><code class="inline">:pre</code> — List of modules implementing <a href="Releaser.Hooks.PreHook.html"><code class="inline">Releaser.Hooks.PreHook</code></a></li><li><code class="inline">:post</code> — List of modules implementing <a href="Releaser.Hooks.PostHook.html"><code class="inline">Releaser.Hooks.PostHook</code></a></li></ul><h2 id="module-publisher-options" class="section-heading"><a href="#module-publisher-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Publisher options</span></h2><ul><li><code class="inline">:org</code> — Hex organization name (optional)</li><li><code class="inline">:package_defaults</code> — Default <code class="inline">package/0</code> config injected into apps that lack it.
+Keys: <code class="inline">:licenses</code>, <code class="inline">:links</code>, <code class="inline">:files</code></li></ul>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#defaults/0" data-no-tooltip="" translate="no">defaults()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns the default configuration.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#load/0" data-no-tooltip="" translate="no">load()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Loads configuration from the host project's mix.exs, merged with defaults.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="defaults/0">
+
+  <div class="detail-header">
+    <a href="#defaults/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">defaults()</h1>
+
+
+        <a href="https://github.com/MisaelMa/releaser/blob/main/lib/releaser/config.ex#L80" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns the default configuration.</p>
+  </section>
+</section>
+<section class="detail" id="load/0">
+
+  <div class="detail-header">
+    <a href="#load/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">load()</h1>
+
+
+        <a href="https://github.com/MisaelMa/releaser/blob/main/lib/releaser/config.ex#L66" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Loads configuration from the host project's mix.exs, merged with defaults.</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/releaser/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/releaser/0.1.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="releaser.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>
