@@ -17,7 +17,13 @@ defmodule Cdfi.MixProject do
   end
 
   defp deps do
-    cfdi_apps() ++ sat_apps() ++ clir_apps() ++ renapo_apps()
+    cfdi_apps() ++
+      sat_apps() ++
+      clir_apps() ++
+      renapo_apps() ++
+      [
+        {:releaser, "~> 0.0.2", only: :dev, runtime: false}
+      ]
   end
 
   defp cfdi_apps do
@@ -41,7 +47,7 @@ defmodule Cdfi.MixProject do
       {:cfdi_types, path: "apps/cfdi/types"},
       {:cfdi_utils, path: "apps/cfdi/utils"},
       {:cfdi_validador, path: "apps/cfdi/validador"},
-      {:cfdi_xml, path: "apps/cfdi/xml"},
+      {:cfdi, path: "apps/cfdi/cfdi"},
       {:cfdi_xml2json, path: "apps/cfdi/xml2json"},
       {:cfdi_xsd, path: "apps/cfdi/xsd"}
     ]
@@ -64,8 +70,7 @@ defmodule Cdfi.MixProject do
   defp clir_apps do
     [
       {:clir_openssl, path: "apps/clir/openssl"},
-      {:saxon_he, path: "apps/clir/saxon_he"},
-      {:releaser, path: "apps/clir/releaser"}
+      {:saxon_he, path: "apps/clir/saxon_he"}
     ]
   end
 
