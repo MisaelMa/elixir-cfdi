@@ -9,7 +9,7 @@ Este proyecto **no** usa umbrella de Elixir. En su lugar usa el patrón **poncho
 ```
 cfdi-elixir/
 ├── mix.exs              ← proyecto raíz (poncho), lista los 34 paquetes
-├── apps/
+├── packages/
 │   ├── cfdi/            ← @cfdi/* de Node.js
 │   │   ├── cancelacion/
 │   │   ├── catalogos/
@@ -63,18 +63,34 @@ mix deps.get
 mix compile
 
 # Tests de un paquete específico
-cd apps/cfdi/catalogos && mix test
+cd packages/cfdi/catalogos && mix test
 
 # Tests de todos los paquetes
-find apps -mindepth 3 -maxdepth 3 -name "mix.exs" -execdir mix test \;
+find packages -mindepth 3 -maxdepth 3 -name "mix.exs" -execdir mix test \;
 ```
+
+## Generación de catálogos (mix cfdi.catalogos.generate)
+
+Regenera los 15 módulos de `cfdi_catalogos` a partir de los archivos oficiales del SAT (`catCFDI.xsd` + `catCFDI.xlsx`). Ejecutar desde el paquete `catalogos_codegen`:
+
+```bash
+cd packages/cfdi/catalogos_codegen
+
+# Regenerar con el XLSX ya presente en packages/files/4.0/
+mix cfdi.catalogos.generate
+
+# Descargar el XLSX más reciente del SAT y regenerar
+mix cfdi.catalogos.generate --force-download
+```
+
+Ver más opciones en [`packages/cfdi/catalogos_codegen/README.md`](packages/cfdi/catalogos_codegen/README.md).
 
 ## Cada paquete es independiente
 
-Cada directorio dentro de `apps/<grupo>/<nombre>/` es un proyecto Mix completo con su propio `mix.exs`, `lib/`, y `test/`. Puedes compilar y testear cada uno por separado:
+Cada directorio dentro de `packages/<grupo>/<nombre>/` es un proyecto Mix completo con su propio `mix.exs`, `lib/`, y `test/`. Puedes compilar y testear cada uno por separado:
 
 ```bash
-cd apps/cfdi/rfc
+cd packages/cfdi/rfc
 mix deps.get
 mix test
 ```
@@ -84,7 +100,7 @@ mix test
 Los paquetes usan `path:` para depender de otros paquetes del monorepo:
 
 ```elixir
-# apps/cfdi/xml/mix.exs
+# packages/cfdi/xml/mix.exs
 defp deps do
   [
     {:cfdi_csd, path: "../csd"},                    # mismo grupo
@@ -356,46 +372,46 @@ mix hex.publish_all
 
 | Node.js (`@scope/name`) | Elixir (app name) | Ruta |
 |---|---|---|
-| `@cfdi/cancelacion` | `:cfdi_cancelacion` | `apps/cfdi/cancelacion/` |
-| `@cfdi/catalogos` | `:cfdi_catalogos` | `apps/cfdi/catalogos/` |
-| `@cfdi/cleaner` | `:cfdi_cleaner` | `apps/cfdi/cleaner/` |
-| `@cfdi/complementos` | `:cfdi_complementos` | `apps/cfdi/complementos/` |
-| `@cfdi/csd` | `:cfdi_csd` | `apps/cfdi/csd/` |
-| `@cfdi/csf` | `:cfdi_csf` | `apps/cfdi/csf/` |
-| `@cfdi/descarga` | `:cfdi_descarga` | `apps/cfdi/descarga/` |
-| `@cfdi/designs` | `:cfdi_designs` | `apps/cfdi/designs/` |
-| `@cfdi/elements` | `:cfdi_elements` | `apps/cfdi/elements/` |
-| `@cfdi/estado` | `:cfdi_estado` | `apps/cfdi/estado/` |
-| `@cfdi/expresiones` | `:cfdi_expresiones` | `apps/cfdi/expresiones/` |
-| `@cfdi/pdf` | `:cfdi_pdf` | `apps/cfdi/pdf/` |
-| `@cfdi/retenciones` | `:cfdi_retenciones` | `apps/cfdi/retenciones/` |
-| `@cfdi/rfc` | `:cfdi_rfc` | `apps/cfdi/rfc/` |
-| `@cfdi/schema` | `:cfdi_schema` | `apps/cfdi/schema/` |
-| `@cfdi/transform` | `:cfdi_transform` | `apps/cfdi/transform/` |
-| `@cfdi/types` | `:cfdi_types` | `apps/cfdi/types/` |
-| `@cfdi/utils` | `:cfdi_utils` | `apps/cfdi/utils/` |
-| `@cfdi/validador` | `:cfdi_validador` | `apps/cfdi/validador/` |
-| `@cfdi/xml` | `:cfdi_xml` | `apps/cfdi/xml/` |
-| `@cfdi/xml2json` | `:cfdi_xml2json` | `apps/cfdi/xml2json/` |
-| `@cfdi/xsd` | `:cfdi_xsd` | `apps/cfdi/xsd/` |
-| `@sat/auth` | `:sat_auth` | `apps/sat/auth/` |
-| `@sat/banxico` | `:sat_banxico` | `apps/sat/banxico/` |
-| `@sat/captcha` | `:sat_captcha` | `apps/sat/captcha/` |
-| `@sat/contabilidad` | `:sat_contabilidad` | `apps/sat/contabilidad/` |
-| `@sat/diot` | `:sat_diot` | `apps/sat/diot/` |
-| `@sat/opinion` | `:sat_opinion` | `apps/sat/opinion/` |
-| `@sat/pacs` | `:sat_pacs` | `apps/sat/pacs/` |
-| `@sat/recursos` | `:sat_recursos` | `apps/sat/recursos/` |
-| `@sat/scraper` | `:sat_scraper` | `apps/sat/scraper/` |
-| `@clir/openssl` | `:clir_openssl` | `apps/clir/openssl/` |
-| `@saxon-he/cli` | `:saxon_he` | `apps/clir/saxon_he/` |
-| `@renapo/curp` | `:renapo_curp` | `apps/renapo/curp/` |
+| `@cfdi/cancelacion` | `:cfdi_cancelacion` | `packages/cfdi/cancelacion/` |
+| `@cfdi/catalogos` | `:cfdi_catalogos` | `packages/cfdi/catalogos/` |
+| `@cfdi/cleaner` | `:cfdi_cleaner` | `packages/cfdi/cleaner/` |
+| `@cfdi/complementos` | `:cfdi_complementos` | `packages/cfdi/complementos/` |
+| `@cfdi/csd` | `:cfdi_csd` | `packages/cfdi/csd/` |
+| `@cfdi/csf` | `:cfdi_csf` | `packages/cfdi/csf/` |
+| `@cfdi/descarga` | `:cfdi_descarga` | `packages/cfdi/descarga/` |
+| `@cfdi/designs` | `:cfdi_designs` | `packages/cfdi/designs/` |
+| `@cfdi/elements` | `:cfdi_elements` | `packages/cfdi/elements/` |
+| `@cfdi/estado` | `:cfdi_estado` | `packages/cfdi/estado/` |
+| `@cfdi/expresiones` | `:cfdi_expresiones` | `packages/cfdi/expresiones/` |
+| `@cfdi/pdf` | `:cfdi_pdf` | `packages/cfdi/pdf/` |
+| `@cfdi/retenciones` | `:cfdi_retenciones` | `packages/cfdi/retenciones/` |
+| `@cfdi/rfc` | `:cfdi_rfc` | `packages/cfdi/rfc/` |
+| `@cfdi/schema` | `:cfdi_schema` | `packages/cfdi/schema/` |
+| `@cfdi/transform` | `:cfdi_transform` | `packages/cfdi/transform/` |
+| `@cfdi/types` | `:cfdi_types` | `packages/cfdi/types/` |
+| `@cfdi/utils` | `:cfdi_utils` | `packages/cfdi/utils/` |
+| `@cfdi/validador` | `:cfdi_validador` | `packages/cfdi/validador/` |
+| `@cfdi/xml` | `:cfdi_xml` | `packages/cfdi/xml/` |
+| `@cfdi/xml2json` | `:cfdi_xml2json` | `packages/cfdi/xml2json/` |
+| `@cfdi/xsd` | `:cfdi_xsd` | `packages/cfdi/xsd/` |
+| `@sat/auth` | `:sat_auth` | `packages/sat/auth/` |
+| `@sat/banxico` | `:sat_banxico` | `packages/sat/banxico/` |
+| `@sat/captcha` | `:sat_captcha` | `packages/sat/captcha/` |
+| `@sat/contabilidad` | `:sat_contabilidad` | `packages/sat/contabilidad/` |
+| `@sat/diot` | `:sat_diot` | `packages/sat/diot/` |
+| `@sat/opinion` | `:sat_opinion` | `packages/sat/opinion/` |
+| `@sat/pacs` | `:sat_pacs` | `packages/sat/pacs/` |
+| `@sat/recursos` | `:sat_recursos` | `packages/sat/recursos/` |
+| `@sat/scraper` | `:sat_scraper` | `packages/sat/scraper/` |
+| `@clir/openssl` | `:clir_openssl` | `packages/clir/openssl/` |
+| `@saxon-he/cli` | `:saxon_he` | `packages/clir/saxon_he/` |
+| `@renapo/curp` | `:renapo_curp` | `packages/renapo/curp/` |
 
 ## Diferencias con umbrella
 
 | | Umbrella | Poncho (este proyecto) |
 |---|---|---|
-| Estructura | `apps/cfdi_catalogos/` (plano) | `apps/cfdi/catalogos/` (agrupado) |
+| Estructura | `packages/cfdi_catalogos/` (plano) | `packages/cfdi/catalogos/` (agrupado) |
 | Descubrimiento | Automático por Mix | Explícito en `deps` del root |
 | Deps entre apps | `in_umbrella: true` | `path: "../catalogos"` |
 | `mix test` (root) | Corre todos los tests | Corre solo root tests |

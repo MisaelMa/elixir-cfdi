@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4">
+    <cfdi:Emisor Rfc="EKU9003173C9" Nombre="GASOLINERA EJEMPLO SA DE CV" RegimenFiscal="601"/>
+    <cfdi:Receptor Rfc="XAXX010101000" Nombre="PUBLICO EN GENERAL" DomicilioFiscalReceptor="01000" RegimenFiscalReceptor="616" UsoCFDI="S01"/>
+    <cfdi:Conceptos>
+        <cfdi:Concepto ClaveProdServ="15101514" Cantidad="50.000" ClaveUnidad="LTR" Unidad="Litro" Descripcion="Gasolina Magna" ValorUnitario="22.50" Importe="1125.00" ObjetoImp="02">
+            <cfdi:ComplementoConcepto>
+                <hidrocarburo10:Hidrocarburo10 xmlns:hidrocarburo10="http://www.sat.gob.mx/Hidrocarburos10" Version="1.0" ClaveTipoCombustible="GA01" ImporteTipoCombustible="1125.00" Descripcion="Gasolina menor a 92 octanos">
+                    <hidrocarburo10:DocumentosRelacionados>
+                        <hidrocarburo10:DocumentoRelacionado FolioFiscalOriginal="11111111-2222-3333-4444-555555555555" FechaFolioFiscalOriginal="2025-01-15" ClaveTipoMedidor="01" UnidadMedida="LTR" Cantidad="50.000"/>
+                        <hidrocarburo10:DocumentoRelacionado FolioFiscalOriginal="22222222-3333-4444-5555-666666666666" FechaFolioFiscalOriginal="2025-01-16" ClaveTipoMedidor="01" UnidadMedida="LTR" Cantidad="30.000"/>
+                    </hidrocarburo10:DocumentosRelacionados>
+                </hidrocarburo10:Hidrocarburo10>
+            </cfdi:ComplementoConcepto>
+        </cfdi:Concepto>
+    </cfdi:Conceptos>
+</cfdi:Comprobante>

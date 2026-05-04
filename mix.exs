@@ -1,14 +1,15 @@
-defmodule Cdfi.MixProject do
+defmodule SAT_CFDI.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :cdfi,
+      app: :sat_cfdi,
       version: "0.1.0",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      releaser: [apps_root: "packages"]
     ]
   end
 
@@ -22,61 +23,62 @@ defmodule Cdfi.MixProject do
       clir_apps() ++
       renapo_apps() ++
       [
-        {:releaser, "~> 0.0.2", only: :dev, runtime: false}
+        {:releaser, "~> 0.0.4", only: :dev, runtime: false}
       ]
   end
 
   defp cfdi_apps do
     [
-      {:cfdi_cancelacion, path: "apps/cfdi/cancelacion"},
-      {:cfdi_catalogos, path: "apps/cfdi/catalogos"},
-      {:cfdi_cleaner, path: "apps/cfdi/cleaner"},
-      {:cfdi_complementos, path: "apps/cfdi/complementos"},
-      {:cfdi_csd, path: "apps/cfdi/csd"},
-      {:cfdi_csf, path: "apps/cfdi/csf"},
-      {:cfdi_descarga, path: "apps/cfdi/descarga"},
-      {:cfdi_designs, path: "apps/cfdi/designs"},
-      {:cfdi_elements, path: "apps/cfdi/elements"},
-      {:cfdi_estado, path: "apps/cfdi/estado"},
-      {:cfdi_expresiones, path: "apps/cfdi/expresiones"},
-      {:cfdi_pdf, path: "apps/cfdi/pdf"},
-      {:cfdi_retenciones, path: "apps/cfdi/retenciones"},
-      {:cfdi_rfc, path: "apps/cfdi/rfc"},
-      {:cfdi_schema, path: "apps/cfdi/schema"},
-      {:cfdi_transform, path: "apps/cfdi/transform"},
-      {:cfdi_types, path: "apps/cfdi/types"},
-      {:cfdi_utils, path: "apps/cfdi/utils"},
-      {:cfdi_validador, path: "apps/cfdi/validador"},
-      {:cfdi, path: "apps/cfdi/cfdi"},
-      {:cfdi_xml2json, path: "apps/cfdi/xml2json"},
-      {:cfdi_xsd, path: "apps/cfdi/xsd"}
+      {:cfdi_catalogos_codegen, path: "packages/cfdi/catalogos_codegen", only: :dev, runtime: false},
+      {:cfdi_cancelacion, path: "packages/cfdi/cancelacion"},
+      {:cfdi_catalogos, path: "packages/cfdi/catalogos"},
+      {:cfdi_cleaner, path: "packages/cfdi/cleaner"},
+      {:cfdi_complementos, path: "packages/cfdi/complementos"},
+      {:cfdi_certificados, path: "packages/cfdi/certificados"},
+      {:cfdi_csf, path: "packages/cfdi/csf"},
+      {:cfdi_descarga, path: "packages/cfdi/descarga"},
+      {:cfdi_designs, path: "packages/cfdi/designs"},
+      {:cfdi_elements, path: "packages/cfdi/elements"},
+      {:cfdi_estado, path: "packages/cfdi/estado"},
+      {:cfdi_expresiones, path: "packages/cfdi/expresiones"},
+      {:cfdi_pdf, path: "packages/cfdi/pdf"},
+      {:cfdi_retenciones, path: "packages/cfdi/retenciones"},
+      {:cfdi_rfc, path: "packages/cfdi/rfc"},
+      {:cfdi_schema, path: "packages/cfdi/schema"},
+      {:cfdi_transform, path: "packages/cfdi/transform"},
+      {:cfdi_types, path: "packages/cfdi/types"},
+      {:cfdi_utils, path: "packages/cfdi/utils"},
+      {:cfdi_validador, path: "packages/cfdi/validador"},
+      {:cfdi, path: "packages/cfdi/cfdi"},
+      {:cfdi_xml2json, path: "packages/cfdi/xml2json"},
+      {:cfdi_xsd, path: "packages/cfdi/xsd"}
     ]
   end
 
   defp sat_apps do
     [
-      {:sat_auth, path: "apps/sat/auth"},
-      {:sat_banxico, path: "apps/sat/banxico"},
-      {:sat_captcha, path: "apps/sat/captcha"},
-      {:sat_contabilidad, path: "apps/sat/contabilidad"},
-      {:sat_diot, path: "apps/sat/diot"},
-      {:sat_opinion, path: "apps/sat/opinion"},
-      {:sat_pacs, path: "apps/sat/pacs"},
-      {:sat_recursos, path: "apps/sat/recursos"},
-      {:sat_scraper, path: "apps/sat/scraper"}
+      {:sat_auth, path: "packages/sat/auth"},
+      {:sat_banxico, path: "packages/sat/banxico"},
+      {:sat_captcha, path: "packages/sat/captcha"},
+      {:sat_contabilidad, path: "packages/sat/contabilidad"},
+      {:sat_diot, path: "packages/sat/diot"},
+      {:sat_opinion, path: "packages/sat/opinion"},
+      {:sat_pacs, path: "packages/sat/pacs"},
+      {:sat_recursos, path: "packages/sat/recursos"},
+      {:sat_scraper, path: "packages/sat/scraper"}
     ]
   end
 
   defp clir_apps do
     [
-      {:clir_openssl, path: "apps/clir/openssl"},
-      {:saxon_he, path: "apps/clir/saxon_he"}
+      {:clir_openssl, path: "packages/clir/openssl"},
+      {:saxon_he, path: "packages/clir/saxon_he"}
     ]
   end
 
   defp renapo_apps do
     [
-      {:renapo_curp, path: "apps/renapo/curp"}
+      {:renapo_curp, path: "packages/renapo/curp"}
     ]
   end
 

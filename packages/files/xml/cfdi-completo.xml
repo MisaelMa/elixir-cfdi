@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante>
+    <cfdi:Emisor Rfc="EKU9003173C9" Nombre="ESCUELA KEMPER URGATE" RegimenFiscal="603"/>
+    <cfdi:Receptor Rfc="CACX7605101P8" Nombre="XOCHILT CASAS CHAVEZ" DomicilioFiscalReceptor="36257" RegimenFiscalReceptor="612" UsoCFDI="G03"/>
+    <cfdi:Conceptos>
+        <cfdi:Concepto ClaveProdServ="86121500" Cantidad="1" ClaveUnidad="E48" Unidad="Pieza" Descripcion="Mensualidad - diciembre" ValorUnitario="5000" Importe="5000" Descuento="0">
+            <cfdi:Impuestos>
+                <cfdi:Traslados>
+                    <cfdi:Traslado Base="1" Impuesto="002" TipoFactor="Exento"/>
+                </cfdi:Traslados>
+            </cfdi:Impuestos>
+            <cfdi:ComplementoConcepto>
+                <iedu:instEducativas xmlns:iedu="http://www.sat.gob.mx/iedu" rfcPago="CACX7605101P8" autRVOE="118141" nivelEducativo="Primaria" CURP="XEXX010101HNEXXXA4" nombreAlumno="RUBINHO LOPEZ ADILENE" version="1.0"/>
+            </cfdi:ComplementoConcepto>
+        </cfdi:Concepto>
+    </cfdi:Conceptos>
+    <cfdi:Impuestos TotalImpuestosTrasladados="0.16">
+        <cfdi:Traslados>
+            <cfdi:Traslado Base="1" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="0.16"/>
+        </cfdi:Traslados>
+    </cfdi:Impuestos>
+    <cfdi:Complemento>
+        <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" Version="1.1" UUID="5e2d6aff-2dd7-43d1-83d3-14c1aca396d9" FechaTimbrado="2021-02-17T14:13:10" RfcProvCertif="SPR190613I52" NoCertificadoSAT="30001000000400002495"/>
+    </cfdi:Complemento>
+</cfdi:Comprobante>
