@@ -21,7 +21,7 @@ defmodule Cfdi.Descarga.DescargaMasiva do
 
   @type t :: %__MODULE__{
           token: SatToken.t(),
-          credential: Cfdi.Csd.Credential.t()
+          credential: Sat.Certificados.Credential.t()
         }
 
   @spec solicitar(t(), SolicitudParams.t()) ::
@@ -38,7 +38,7 @@ defmodule Cfdi.Descarga.DescargaMasiva do
   @spec verificar(t(), String.t()) ::
           {:ok, Cfdi.Descarga.Types.VerificacionResult.t()} | {:error, String.t()}
   def verificar(%__MODULE__{token: token, credential: cred}, id_solicitud) do
-    rfc = Cfdi.Csd.Credential.rfc(cred)
+    rfc = Sat.Certificados.Credential.rfc(cred)
     {cert, sig} = sign_components(cred, "VerificaSolicitud-#{id_solicitud}")
     body = Verificar.build_verificar_request(id_solicitud, rfc, token.value, cert, sig)
 
@@ -49,7 +49,7 @@ defmodule Cfdi.Descarga.DescargaMasiva do
 
   @spec descargar(t(), String.t()) :: {:ok, binary()} | {:error, String.t()}
   def descargar(%__MODULE__{token: token, credential: cred}, id_paquete) do
-    rfc = Cfdi.Csd.Credential.rfc(cred)
+    rfc = Sat.Certificados.Credential.rfc(cred)
     {cert, sig} = sign_components(cred, "Descarga-#{id_paquete}")
     body = Descargar.build_descargar_request(id_paquete, rfc, token.value, cert, sig)
 
@@ -58,9 +58,9 @@ defmodule Cfdi.Descarga.DescargaMasiva do
     end
   end
 
-  defp sign_components(%Cfdi.Csd.Credential{} = cred, content) do
-    sig = Cfdi.Csd.Credential.sign(cred, content)
-    pem = Cfdi.Csd.Certificate.to_pem(cred.certificate)
+  defp sign_components(%Sat.Certificados.Credential{} = cred, content) do
+    sig = Sat.Certificados.Credential.sign(cred, content)
+    pem = Sat.Certificados.Certificate.to_pem(cred.certificate)
 
     cert =
       pem

@@ -20,20 +20,20 @@ defmodule Cfdi.Cancelacion.CancelacionCfdi do
 
   @type t :: %__MODULE__{
           token: SatToken.t(),
-          credential: Cfdi.Csd.Credential.t()
+          credential: Sat.Certificados.Credential.t()
         }
 
   @spec cancelar(t(), CancelacionParams.t()) ::
           {:ok, Cfdi.Cancelacion.Types.CancelacionResult.t()} | {:error, String.t()}
   def cancelar(%__MODULE__{token: token, credential: cred}, %CancelacionParams{} = params) do
-    rfc_emisor = params.rfc_emisor || Cfdi.Csd.Credential.rfc(cred)
+    rfc_emisor = params.rfc_emisor || Sat.Certificados.Credential.rfc(cred)
     fecha = fecha_sat_iso()
     {cert, sig, serial} = sign_components(cred, "CancelaCFD-#{params.uuid}")
 
     cancel_xml =
       Cancelar.build_cancelacion_xml(params, rfc_emisor, fecha, cert, sig, serial)
 
-    body = Cancelar.build_cancelar_request(cancel_xml, token.value, cert, sig)
+    body = Cancelar.build_cancelar_request(cancel_xml, token.value, cert)
 
     with {:ok, xml} <- post(@url_cancelar, @action_cancelar, body) do
       Cancelar.parse_cancelar_response(xml)
@@ -57,10 +57,10 @@ defmodule Cfdi.Cancelacion.CancelacionCfdi do
   @spec consultar_pendientes(t()) ::
           {:ok, [Cfdi.Cancelacion.Types.PendientesResult.t()]} | {:error, String.t()}
   def consultar_pendientes(%__MODULE__{token: token, credential: cred}) do
-    rfc = Cfdi.Csd.Credential.rfc(cred)
-    {cert, sig, _} = sign_components(cred, "ConsultaPendientes-#{rfc}")
+    rfc = Sat.Certificados.Credential.rfc(cred)
+    {cert, _, _} = sign_components(cred, "ConsultaPendientes-#{rfc}")
 
-    body = AceptacionRechazo.build_consulta_pendientes_request(rfc, token.value, cert, sig)
+    body = AceptacionRechazo.build_consulta_pendientes_request(rfc, token.value, cert)
 
     with {:ok, xml} <- post(@url_aceptacion, @action_pendientes, body) do
       AceptacionRechazo.parse_consulta_pendientes_response(xml)
@@ -73,9 +73,9 @@ defmodule Cfdi.Cancelacion.CancelacionCfdi do
     |> Calendar.strftime("%Y-%m-%dT%H:%M:%S")
   end
 
-  defp sign_components(%Cfdi.Csd.Credential{} = cred, content) do
-    sig = Cfdi.Csd.Credential.sign(cred, content)
-    pem = Cfdi.Csd.Certificate.to_pem(cred.certificate)
+  defp sign_components(%Sat.Certificados.Credential{} = cred, content) do
+    sig = Sat.Certificados.Credential.sign(cred, content)
+    pem = Sat.Certificados.Certificate.to_pem(cred.certificate)
 
     cert =
       pem
@@ -83,7 +83,7 @@ defmodule Cfdi.Cancelacion.CancelacionCfdi do
       |> String.replace("-----END CERTIFICATE-----", "")
       |> String.replace(~r/\s+/, "")
 
-    serial = Cfdi.Csd.Certificate.serial_number(cred.certificate)
+    serial = Sat.Certificados.Certificate.serial_number(cred.certificate)
     {cert, sig, serial}
   end
 

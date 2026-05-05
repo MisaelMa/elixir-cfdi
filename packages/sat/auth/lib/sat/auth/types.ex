@@ -17,7 +17,7 @@ defmodule Sat.Auth.Types do
   @typedoc """
   Any struct that can supply a certificate and sign UTF-8/XML fragments with RSA-SHA256 (Base64).
 
-  Typically `%Cfdi.Csd.Credential{}`.
+  Typically `%Sat.Certificados.Credential{}`.
   """
-  @type credential_like :: Cfdi.Csd.Credential.t() | term()
+  @type credential_like :: Sat.Certificados.Credential.t() | term()
 end

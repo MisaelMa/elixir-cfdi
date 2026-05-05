@@ -11,7 +11,7 @@ defmodule Sat.Auth.SatAuth do
   @soap_action "http://DescargaMasivaTerceros.gob.mx/IAutenticacion/Autentica"
 
   @spec authenticate(Sat.Auth.Types.credential_like()) :: {:ok, SatToken.t()} | {:error, String.t()}
-  def authenticate(%Cfdi.Csd.Credential{} = credential) do
+  def authenticate(%Sat.Certificados.Credential{} = credential) do
     %{fragment: ts_frag, created: created_s, expires: expires_s} = TokenBuilder.build_timestamp_fragment()
 
     digest =
@@ -30,7 +30,7 @@ defmodule Sat.Auth.SatAuth do
         credential.private_key
       )
 
-    cert_b64 = Cfdi.Csd.Certificate.to_base64(credential.certificate)
+    cert_b64 = Sat.Certificados.Certificate.to_base64(credential.certificate)
     token_id = "uuid-" <> random_uuid()
 
     envelope =
@@ -65,7 +65,7 @@ defmodule Sat.Auth.SatAuth do
     end
   end
 
-  def authenticate(_), do: {:error, "credential must be a Cfdi.Csd.Credential struct"}
+  def authenticate(_), do: {:error, "credential must be a Sat.Certificados.Credential struct"}
 
   defp parse_token_response(soap, %DateTime{} = created, %DateTime{} = expires) do
     cond do

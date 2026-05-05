@@ -49,8 +49,8 @@ defmodule Sat.Auth.XmlSigner do
   @doc """
   RSA-SHA256 PKCS#1 v1.5 signature of `data`, Base64-encoded.
   """
-  @spec sign_rsa_sha256(iodata(), Cfdi.Csd.PrivateKey.t()) :: String.t()
-  def sign_rsa_sha256(data, %Cfdi.Csd.PrivateKey{} = pk) do
-    Cfdi.Csd.PrivateKey.sign(pk, data)
+  @spec sign_rsa_sha256(iodata(), Sat.Certificados.PrivateKey.t()) :: String.t()
+  def sign_rsa_sha256(data, %Sat.Certificados.PrivateKey{} = pk) do
+    Sat.Certificados.PrivateKey.sign(pk, data)
   end
 end

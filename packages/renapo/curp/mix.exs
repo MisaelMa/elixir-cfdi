@@ -4,7 +4,7 @@ defmodule Renapo.Curp.MixProject do
   def project do
     [
       app: :renapo_curp,
-      version: "0.0.10",
+      version: "4.0.1",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",

@@ -4,7 +4,7 @@ defmodule Cfdi.Expresiones.MixProject do
   def project do
     [
       app: :cfdi_expresiones,
-      version: "4.0.14",
+      version: "4.0.1",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",

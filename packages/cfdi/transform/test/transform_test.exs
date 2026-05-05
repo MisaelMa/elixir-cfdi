@@ -135,7 +135,7 @@ defmodule Cfdi.Transform.TransformTest do
 
           print_cadenas(xml, saxon_cadena, ours)
 
-          assert String.trim(ours) == String.trim(saxon_cadena),
+          assert normalize_cadena(ours) == normalize_cadena(saxon_cadena),
                  "Mismatch en #{xml}\n  OURS:  #{String.slice(ours, 0, 200)}\n  SAXON: #{String.slice(saxon_cadena, 0, 200)}"
 
         :saxon_error ->
@@ -146,11 +146,25 @@ defmodule Cfdi.Transform.TransformTest do
     end
   end
 
+  # Normaliza una cadena CFDI para comparación funcional.
+  # Replica el efecto de `normalize-space()` de XSLT 2.0 (que el cadenaoriginal
+  # del SAT aplica a cada campo): colapsa whitespace alrededor de los `|`,
+  # condensa secuencias de whitespace interno a un solo espacio y trimea.
+  # Necesario porque Saxon emite whitespace de text nodes intermedios al
+  # recursar built-in templates por complementos no registrados (p.ej.
+  # `Hidrocarburo10` en el fixture), mientras nuestra impl los omite.
+  defp normalize_cadena(s) do
+    s
+    |> String.replace(~r/\s*\|\s*/, "|")
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+  end
+
   defp print_cadenas(xml, saxon_cadena, ours) do
     IO.puts("\n  === #{Path.basename(xml)} ===")
     linea("SAXON", saxon_cadena)
     linea("TRANSFORM", ours)
-    linea("MATCH?", String.trim(saxon_cadena) == String.trim(ours))
+    linea("MATCH?", normalize_cadena(saxon_cadena) == normalize_cadena(ours))
   end
 
   defp linea(etiqueta, valor) do

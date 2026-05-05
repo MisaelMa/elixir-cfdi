@@ -8,6 +8,7 @@ defmodule CFDI do
   """
 
   alias Cfdi.Comprobante
+  alias Sat.Certificados.{Certificate, Credential}
 
   defstruct comprobante: nil, config: %{}
 
@@ -22,22 +23,18 @@ defmodule CFDI do
   @doc """
   Asocia certificado y número de certificado al comprobante.
   """
-  @spec certificar(t(), map()) :: {:ok, t()} | {:error, atom()}
-  def certificar(%__MODULE__{comprobante: comp} = c, credential) when is_map(credential) do
-    cert = Map.get(credential, :certificado) || Map.get(credential, "certificado")
-    no = Map.get(credential, :no_certificado) || Map.get(credential, "no_certificado")
+  @spec certificar(t(), Credential.t()) :: {:ok, t()} | {:error, atom()}
+  def certificar(%__MODULE__{comprobante: comp} = c, %Credential{} = cred) do
+    updated =
+      struct(comp, %{
+        Certificado: Certificate.to_base64(cred.certificate),
+        NoCertificado: Credential.no_certificado(cred)
+      })
 
-    if cert && no do
-      updated =
-        struct(comp, %{Certificado: to_string(cert), NoCertificado: to_string(no)})
-
-      {:ok, %{c | comprobante: updated, config: Map.put(c.config, :credential, credential)}}
-    else
-      {:error, :incomplete_credential}
-    end
+    {:ok, %{c | comprobante: updated, config: Map.put(c.config, :credential, cred)}}
   end
 
-  def certificar(%__MODULE__{}, _), do: {:error, :credential_must_be_map}
+  def certificar(%__MODULE__{}, _), do: {:error, :credential_must_be_credential_struct}
 
   @doc """
   Firma la cadena original y escribe el atributo `Sello`.
@@ -45,17 +42,18 @@ defmodule CFDI do
   @spec sellar(t()) :: {:ok, t()} | {:error, atom()}
   def sellar(%__MODULE__{comprobante: comp, config: cfg} = c) do
     cadena = Map.get(cfg, :cadena) || Map.get(cfg, "cadena")
-    credential = Map.get(cfg, :credential)
+    cred = Map.get(cfg, :credential)
 
     cond do
       is_nil(cadena) ->
         {:error, :missing_cadena}
 
+      is_nil(cred) ->
+        {:error, :missing_credential}
+
       true ->
-        case Cfdi.Csd.sign_cadena(cadena, credential) do
-          {:ok, sello} -> {:ok, %{c | comprobante: struct(comp, %{Sello: sello})}}
-          {:error, _} = e -> e
-        end
+        sello = Credential.sign(cred, cadena)
+        {:ok, %{c | comprobante: struct(comp, %{Sello: sello})}}
     end
   end
 

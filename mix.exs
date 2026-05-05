@@ -23,18 +23,15 @@ defmodule SAT_CFDI.MixProject do
       clir_apps() ++
       renapo_apps() ++
       [
-        {:releaser, "~> 0.0.4", only: :dev, runtime: false}
+        {:releaser, "~> 0.0.5", only: :dev, runtime: false}
       ]
   end
 
   defp cfdi_apps do
     [
-      {:cfdi_catalogos_codegen, path: "packages/cfdi/catalogos_codegen", only: :dev, runtime: false},
       {:cfdi_cancelacion, path: "packages/cfdi/cancelacion"},
-      {:cfdi_catalogos, path: "packages/cfdi/catalogos"},
       {:cfdi_cleaner, path: "packages/cfdi/cleaner"},
       {:cfdi_complementos, path: "packages/cfdi/complementos"},
-      {:cfdi_certificados, path: "packages/cfdi/certificados"},
       {:cfdi_csf, path: "packages/cfdi/csf"},
       {:cfdi_descarga, path: "packages/cfdi/descarga"},
       {:cfdi_designs, path: "packages/cfdi/designs"},
@@ -50,22 +47,25 @@ defmodule SAT_CFDI.MixProject do
       {:cfdi_utils, path: "packages/cfdi/utils"},
       {:cfdi_validador, path: "packages/cfdi/validador"},
       {:cfdi, path: "packages/cfdi/cfdi"},
-      {:cfdi_xml2json, path: "packages/cfdi/xml2json"},
-      {:cfdi_xsd, path: "packages/cfdi/xsd"}
+      {:cfdi_xml, path: "packages/cfdi/xml"}
     ]
   end
 
   defp sat_apps do
     [
+      {:sat_catalogos_codegen, path: "packages/sat/catalogos_codegen", only: :dev, runtime: false},
       {:sat_auth, path: "packages/sat/auth"},
       {:sat_banxico, path: "packages/sat/banxico"},
       {:sat_captcha, path: "packages/sat/captcha"},
+      {:sat_catalogos, path: "packages/sat/catalogos"},
+      {:sat_certificados, path: "packages/sat/certificados"},
       {:sat_contabilidad, path: "packages/sat/contabilidad"},
       {:sat_diot, path: "packages/sat/diot"},
       {:sat_opinion, path: "packages/sat/opinion"},
       {:sat_pacs, path: "packages/sat/pacs"},
       {:sat_recursos, path: "packages/sat/recursos"},
-      {:sat_scraper, path: "packages/sat/scraper"}
+      {:sat_scraper, path: "packages/sat/scraper"},
+      {:sat_xsd, path: "packages/sat/xsd"}
     ]
   end
 

@@ -144,7 +144,7 @@ defmodule Cfdi.Cleaner.Cleaners.RemoveNonSatNodes do
     end
   end
 
-  defp take_name(xml, pos, len, start) do
+  defp take_name(xml, pos, _len, start) do
     {:ok, binary_part(xml, start, pos - start), pos}
   end
 

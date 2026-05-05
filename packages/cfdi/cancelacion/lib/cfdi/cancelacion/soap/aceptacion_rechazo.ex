@@ -61,8 +61,8 @@ defmodule Cfdi.Cancelacion.Soap.AceptacionRechazo do
 </s:Envelope>)
   end
 
-  @spec build_consulta_pendientes_request(String.t(), String.t(), String.t(), String.t()) :: String.t()
-  def build_consulta_pendientes_request(rfc_receptor, token, cert, signature_value) do
+  @spec build_consulta_pendientes_request(String.t(), String.t(), String.t()) :: String.t()
+  def build_consulta_pendientes_request(rfc_receptor, token, cert) do
     ~s(<?xml version="1.0" encoding="utf-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
             xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">

@@ -12,10 +12,9 @@ cfdi-elixir/
 ├── packages/
 │   ├── cfdi/            ← @cfdi/* de Node.js
 │   │   ├── cancelacion/
-│   │   ├── catalogos/
+│   │   ├── cfdi/
 │   │   ├── cleaner/
 │   │   ├── complementos/
-│   │   ├── csd/
 │   │   ├── csf/
 │   │   ├── descarga/
 │   │   ├── designs/
@@ -30,19 +29,21 @@ cfdi-elixir/
 │   │   ├── types/
 │   │   ├── utils/
 │   │   ├── validador/
-│   │   ├── xml/
-│   │   ├── xml2json/
-│   │   └── xsd/
+│   │   └── xml/
 │   ├── sat/             ← @sat/* de Node.js
 │   │   ├── auth/
 │   │   ├── banxico/
 │   │   ├── captcha/
+│   │   ├── catalogos/
+│   │   ├── catalogos_codegen/
+│   │   ├── certificados/
 │   │   ├── contabilidad/
 │   │   ├── diot/
 │   │   ├── opinion/
 │   │   ├── pacs/
 │   │   ├── recursos/
-│   │   └── scraper/
+│   │   ├── scraper/
+│   │   └── xsd/
 │   ├── clir/            ← @clir/* y @saxon-he/* de Node.js
 │   │   ├── openssl/
 │   │   └── saxon_he/
@@ -63,27 +64,27 @@ mix deps.get
 mix compile
 
 # Tests de un paquete específico
-cd packages/cfdi/catalogos && mix test
+cd packages/sat/catalogos && mix test
 
 # Tests de todos los paquetes
 find packages -mindepth 3 -maxdepth 3 -name "mix.exs" -execdir mix test \;
 ```
 
-## Generación de catálogos (mix cfdi.catalogos.generate)
+## Generación de catálogos (mix sat.catalogos.generate)
 
-Regenera los 15 módulos de `cfdi_catalogos` a partir de los archivos oficiales del SAT (`catCFDI.xsd` + `catCFDI.xlsx`). Ejecutar desde el paquete `catalogos_codegen`:
+Regenera los 15 módulos de `sat_catalogos` a partir de los archivos oficiales del SAT (`catCFDI.xsd` + `catCFDI.xlsx`). Ejecutar desde el paquete `catalogos_codegen`:
 
 ```bash
-cd packages/cfdi/catalogos_codegen
+cd packages/sat/catalogos_codegen
 
 # Regenerar con el XLSX ya presente en packages/files/4.0/
-mix cfdi.catalogos.generate
+mix sat.catalogos.generate
 
 # Descargar el XLSX más reciente del SAT y regenerar
-mix cfdi.catalogos.generate --force-download
+mix sat.catalogos.generate --force-download
 ```
 
-Ver más opciones en [`packages/cfdi/catalogos_codegen/README.md`](packages/cfdi/catalogos_codegen/README.md).
+Ver más opciones en [`packages/sat/catalogos_codegen/README.md`](packages/sat/catalogos_codegen/README.md).
 
 ## Cada paquete es independiente
 
@@ -139,9 +140,9 @@ sat/
 ### Bump simple
 
 ```bash
-mix bump cfdi_catalogos patch        # 4.0.16 → 4.0.17
+mix bump sat_catalogos patch         # 4.0.16 → 4.0.17
 mix bump sat_auth minor              # 1.0.1  → 1.1.0
-mix bump cfdi_csd major              # 4.0.16 → 5.0.0
+mix bump sat_certificados major      # 4.0.16 → 5.0.0
 ```
 
 ### Pre-release tags (como npm dist-tags)
@@ -278,17 +279,17 @@ mix hex.publish_all --graph
 ╚══════════════════════════════════════════════════╝
 
 ┌── Level 0  (sin dependencias internas) ──┐
-│   cfdi_catalogos v4.0.16
+│   sat_catalogos v4.0.16
 │   cfdi_complementos v4.0.17
 │   clir_openssl v0.0.17
 │   saxon_he v12.5.2
 │   ... (28 apps)
 │       ▼
 ┌── Level 1 ──┐
-│   cfdi_csd v4.0.16
+│   sat_certificados v4.0.16
 │   └─ depends on: clir_openssl
 │   cfdi_designs v1.0.0
-│   └─ depends on: cfdi_xml2json, cfdi_utils, cfdi_types, cfdi_complementos
+│   └─ depends on: cfdi_xml, cfdi_utils, cfdi_types, cfdi_complementos
 │       ▼
 ┌── Level 2 ──┐
 │   cfdi_xml v4.0.18
@@ -373,10 +374,8 @@ mix hex.publish_all
 | Node.js (`@scope/name`) | Elixir (app name) | Ruta |
 |---|---|---|
 | `@cfdi/cancelacion` | `:cfdi_cancelacion` | `packages/cfdi/cancelacion/` |
-| `@cfdi/catalogos` | `:cfdi_catalogos` | `packages/cfdi/catalogos/` |
 | `@cfdi/cleaner` | `:cfdi_cleaner` | `packages/cfdi/cleaner/` |
 | `@cfdi/complementos` | `:cfdi_complementos` | `packages/cfdi/complementos/` |
-| `@cfdi/csd` | `:cfdi_csd` | `packages/cfdi/csd/` |
 | `@cfdi/csf` | `:cfdi_csf` | `packages/cfdi/csf/` |
 | `@cfdi/descarga` | `:cfdi_descarga` | `packages/cfdi/descarga/` |
 | `@cfdi/designs` | `:cfdi_designs` | `packages/cfdi/designs/` |
@@ -392,17 +391,19 @@ mix hex.publish_all
 | `@cfdi/utils` | `:cfdi_utils` | `packages/cfdi/utils/` |
 | `@cfdi/validador` | `:cfdi_validador` | `packages/cfdi/validador/` |
 | `@cfdi/xml` | `:cfdi_xml` | `packages/cfdi/xml/` |
-| `@cfdi/xml2json` | `:cfdi_xml2json` | `packages/cfdi/xml2json/` |
-| `@cfdi/xsd` | `:cfdi_xsd` | `packages/cfdi/xsd/` |
 | `@sat/auth` | `:sat_auth` | `packages/sat/auth/` |
 | `@sat/banxico` | `:sat_banxico` | `packages/sat/banxico/` |
 | `@sat/captcha` | `:sat_captcha` | `packages/sat/captcha/` |
+| `@sat/catalogos` | `:sat_catalogos` | `packages/sat/catalogos/` |
+| `@sat/catalogos-codegen` | `:sat_catalogos_codegen` | `packages/sat/catalogos_codegen/` |
+| `@sat/certificados` | `:sat_certificados` | `packages/sat/certificados/` |
 | `@sat/contabilidad` | `:sat_contabilidad` | `packages/sat/contabilidad/` |
 | `@sat/diot` | `:sat_diot` | `packages/sat/diot/` |
 | `@sat/opinion` | `:sat_opinion` | `packages/sat/opinion/` |
 | `@sat/pacs` | `:sat_pacs` | `packages/sat/pacs/` |
 | `@sat/recursos` | `:sat_recursos` | `packages/sat/recursos/` |
 | `@sat/scraper` | `:sat_scraper` | `packages/sat/scraper/` |
+| `@sat/xsd` | `:sat_xsd` | `packages/sat/xsd/` |
 | `@clir/openssl` | `:clir_openssl` | `packages/clir/openssl/` |
 | `@saxon-he/cli` | `:saxon_he` | `packages/clir/saxon_he/` |
 | `@renapo/curp` | `:renapo_curp` | `packages/renapo/curp/` |
@@ -411,7 +412,7 @@ mix hex.publish_all
 
 | | Umbrella | Poncho (este proyecto) |
 |---|---|---|
-| Estructura | `packages/cfdi_catalogos/` (plano) | `packages/cfdi/catalogos/` (agrupado) |
+| Estructura | `packages/sat_catalogos/` (plano) | `packages/sat/catalogos/` (agrupado) |
 | Descubrimiento | Automático por Mix | Explícito en `deps` del root |
 | Deps entre apps | `in_umbrella: true` | `path: "../catalogos"` |
 | `mix test` (root) | Corre todos los tests | Corre solo root tests |

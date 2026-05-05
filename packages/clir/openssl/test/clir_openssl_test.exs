@@ -74,17 +74,11 @@ defmodule Clir.OpensslTest do
     test "from_pem, to_pem, get_data", %{key_pem: key_pem} do
       pem = File.read!(key_pem)
       assert {:ok, decoded} = Pkcs8.from_pem(pem, nil)
-      assert match?({:RSAPrivateKey, _, _, _, _, _, _, _, _}, decoded) or
-               match?({:PrivateKeyInfo, _, _, _, _}, decoded)
+      assert is_tuple(decoded)
+      tag = elem(decoded, 0)
+      assert tag in [:RSAPrivateKey, :PrivateKeyInfo, :ECPrivateKey]
 
-      der =
-        cond do
-          match?({:RSAPrivateKey, _, _, _, _, _, _, _, _}, decoded) ->
-            :public_key.der_encode(:RSAPrivateKey, decoded)
-
-          match?({:PrivateKeyInfo, _, _, _, _}, decoded) ->
-            :public_key.der_encode(:PrivateKeyInfo, decoded)
-        end
+      der = :public_key.der_encode(tag, decoded)
 
       assert {:ok, pem2} = Pkcs8.to_pem(der, nil)
       assert String.contains?(pem2, "BEGIN")

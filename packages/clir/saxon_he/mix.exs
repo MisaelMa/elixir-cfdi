@@ -11,7 +11,8 @@ defmodule SaxonHe.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Saxon-HE CLI wrapper for XSLT and XQuery"
+      description: "Saxon-HE CLI wrapper for XSLT and XQuery",
+      releaser: [publish: true]
     ]
   end
 

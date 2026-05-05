@@ -7,5 +7,5 @@ defmodule Clir.Openssl do
   """
 
   @doc false
-  def version, do: Application.spec(:clir_openssl, :vsn)
+  def version, do: to_string(Application.spec(:clir_openssl, :vsn))
 end

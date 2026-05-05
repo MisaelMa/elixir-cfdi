@@ -4,7 +4,7 @@ defmodule Cfdi.Designs.MixProject do
   def project do
     [
       app: :cfdi_designs,
-      version: "1.0.0",
+      version: "4.0.1",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",
@@ -21,7 +21,7 @@ defmodule Cfdi.Designs.MixProject do
 
   defp deps do
     [
-      {:cfdi_xml2json, path: "../xml2json"},
+      {:cfdi_xml, path: "../xml"},
       {:cfdi_utils, path: "../utils"},
       {:cfdi_types, path: "../types"},
       {:cfdi_complementos, path: "../complementos"}

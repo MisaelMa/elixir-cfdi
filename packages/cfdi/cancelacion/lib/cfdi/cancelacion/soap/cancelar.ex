@@ -61,8 +61,8 @@ defmodule Cfdi.Cancelacion.Soap.Cancelar do
 </Cancelacion>)
   end
 
-  @spec build_cancelar_request(String.t(), String.t(), String.t(), String.t()) :: String.t()
-  def build_cancelar_request(cancelacion_xml, token, cert, signature_value) do
+  @spec build_cancelar_request(String.t(), String.t(), String.t()) :: String.t()
+  def build_cancelar_request(cancelacion_xml, token, cert) do
     escaped = escape_xml_content(cancelacion_xml)
 
     ~s(<?xml version="1.0" encoding="utf-8"?>

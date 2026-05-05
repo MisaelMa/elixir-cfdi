@@ -4,7 +4,7 @@ defmodule Clir.Openssl.MixProject do
   def project do
     [
       app: :clir_openssl,
-      version: "0.0.17",
+      version: "4.0.1",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",

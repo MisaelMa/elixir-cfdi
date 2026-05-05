@@ -175,19 +175,20 @@ defmodule Clir.Openssl.Pkcs8 do
     end
   end
 
-  defp encode_decoded_to_pem!(term) do
-    cond do
-      match?({:PrivateKeyInfo, _, _, _, _}, term) ->
-        der = :public_key.der_encode(:PrivateKeyInfo, term)
-        :public_key.pem_encode([{:PrivateKeyInfo, der, :not_encrypted}])
+  defp encode_decoded_to_pem!(term) when is_tuple(term) and tuple_size(term) > 1 do
+    tag = elem(term, 0)
 
-      match?({:RSAPrivateKey, _, _, _, _, _, _, _, _}, term) ->
-        der = :public_key.der_encode(:RSAPrivateKey, term)
-        :public_key.pem_encode([{:RSAPrivateKey, der, :not_encrypted}])
-
-      true ->
-        raise ArgumentError, "llave decodificada no soportada (se esperaba RSA PKCS#1 o PKCS#8)"
+    if tag in [:PrivateKeyInfo, :RSAPrivateKey, :ECPrivateKey] do
+      der = :public_key.der_encode(tag, term)
+      :public_key.pem_encode([{tag, der, :not_encrypted}])
+    else
+      raise ArgumentError,
+            "llave decodificada no soportada (se esperaba RSA PKCS#1, PKCS#8 o EC), recibido: #{inspect(tag)}"
     end
+  end
+
+  defp encode_decoded_to_pem!(term) do
+    raise ArgumentError, "llave decodificada inválida: #{inspect(term)}"
   end
 
   defp to_charlist_password(nil), do: ~c""

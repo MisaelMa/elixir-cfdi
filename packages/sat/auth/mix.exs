@@ -4,7 +4,7 @@ defmodule Sat.Auth.MixProject do
   def project do
     [
       app: :sat_auth,
-      version: "1.0.1",
+      version: "4.0.1",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",
@@ -21,7 +21,7 @@ defmodule Sat.Auth.MixProject do
 
   defp deps do
     [
-      {:cfdi_certificados, path: "../../cfdi/certificados"},
+      {:sat_certificados, path: "../certificados"},
       {:req, "~> 0.5"}
     ]
   end

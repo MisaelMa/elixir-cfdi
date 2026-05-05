@@ -33,20 +33,20 @@ defmodule Cfdi.Descarga.Soap.Signer do
   @doc """
   Signs the WS-Security `SignedInfo` for the SOAP body (digest of canonical `body_xml`).
   """
-  @spec sign_soap_body(String.t(), Cfdi.Csd.Credential.t()) :: SoapSignatureComponents.t()
-  def sign_soap_body(body_xml, %Cfdi.Csd.Credential{} = credential) do
+  @spec sign_soap_body(String.t(), Sat.Certificados.Credential.t()) :: SoapSignatureComponents.t()
+  def sign_soap_body(body_xml, %Sat.Certificados.Credential{} = credential) do
     sign_soap_body(body_xml, credential, "_0")
   end
 
-  @spec sign_soap_body(String.t(), Cfdi.Csd.Credential.t(), String.t()) :: SoapSignatureComponents.t()
-  def sign_soap_body(body_xml, %Cfdi.Csd.Credential{} = credential, body_id) do
+  @spec sign_soap_body(String.t(), Sat.Certificados.Credential.t(), String.t()) :: SoapSignatureComponents.t()
+  def sign_soap_body(body_xml, %Sat.Certificados.Credential{} = credential, body_id) do
     canon = canonicalize(body_xml)
     body_digest = digest_sha256(canon)
     signed_info = build_signed_info(body_digest, body_id)
     canon_signed = canonicalize(signed_info)
-    signature_value = Cfdi.Csd.Credential.sign(credential, canon_signed)
+    signature_value = Sat.Certificados.Credential.sign(credential, canon_signed)
 
-    pem = Cfdi.Csd.Certificate.to_pem(credential.certificate)
+    pem = Sat.Certificados.Certificate.to_pem(credential.certificate)
 
     x509 =
       pem
