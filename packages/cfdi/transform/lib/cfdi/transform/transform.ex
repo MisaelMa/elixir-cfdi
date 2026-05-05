@@ -30,6 +30,12 @@ defmodule Cfdi.Transform.Transform do
     %{t | xml_path: xml_path, xml_content: File.read!(xml_path)}
   end
 
+  @doc "Carga el XML directamente como string (sin archivo intermedio)."
+  @spec xml_string(t(), String.t()) :: t()
+  def xml_string(%__MODULE__{} = t, xml) when is_binary(xml) do
+    %{t | xml_path: nil, xml_content: xml}
+  end
+
   @doc "Carga la hoja XSLT (equivale a `.xsl(file)` de Node)."
   @spec xsl(t(), String.t()) :: t()
   def xsl(%__MODULE__{} = t, xsl_path) when is_binary(xsl_path) do

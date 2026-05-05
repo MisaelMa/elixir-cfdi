@@ -8,7 +8,8 @@ defmodule CFDI do
   """
 
   alias Cfdi.Comprobante
-  alias Sat.Certificados.{Certificate, Credential}
+  alias Cfdi.Transform.Transform
+  alias Sat.Certificados.{Certificate, Credential, PrivateKey}
 
   defstruct comprobante: nil, config: %{}
 
@@ -37,7 +38,10 @@ defmodule CFDI do
   def certificar(%__MODULE__{}, _), do: {:error, :credential_must_be_credential_struct}
 
   @doc """
-  Firma la cadena original y escribe el atributo `Sello`.
+  Firma la cadena original y escribe el atributo `Sello` usando una credencial
+  ya cargada en `config[:credential]` y la cadena en `config[:cadena]`.
+
+  Para el flujo de alto nivel desde archivos, usar `sellar/3`.
   """
   @spec sellar(t()) :: {:ok, t()} | {:error, atom()}
   def sellar(%__MODULE__{comprobante: comp, config: cfg} = c) do
@@ -56,6 +60,95 @@ defmodule CFDI do
         {:ok, %{c | comprobante: struct(comp, %{Sello: sello})}}
     end
   end
+
+  @doc """
+  Asocia la ruta del XSLT que generará la cadena original.
+
+  Espejo de `options.xslt` en el constructor de
+  [`CFDI`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L29) de Node.
+  """
+  @spec xslt(t(), String.t()) :: t()
+  def xslt(%__MODULE__{} = c, path) when is_binary(path),
+    do: %{c | config: Map.put(c.config, :xslt, path)}
+
+  @doc """
+  Genera la cadena original aplicando el XSLT al XML del CFDI.
+
+  Espejo de [`generarCadenaOriginal`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L115)
+  de Node. Toma el XSLT desde `config[:xslt]` (set vía `xslt/2`) o desde
+  `opts[:xslt]`.
+  """
+  @spec generar_cadena_original(t(), keyword()) :: {:ok, String.t()} | {:error, term()}
+  def generar_cadena_original(%__MODULE__{} = c, opts \\ []) do
+    xslt_path = Keyword.get(opts, :xslt) || Map.get(c.config, :xslt)
+
+    cond do
+      is_nil(xslt_path) ->
+        {:error, :missing_xslt}
+
+      not File.exists?(xslt_path) ->
+        {:error, {:xslt_not_found, xslt_path}}
+
+      true ->
+        xml = to_xml(c)
+
+        Transform.new()
+        |> Transform.xml_string(xml)
+        |> Transform.xsl(xslt_path)
+        |> Transform.run()
+    end
+  end
+
+  @doc """
+  Firma la cadena original con la llave privada cargada desde archivo.
+
+  Espejo de [`generarSello`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L173)
+  de Node.
+  """
+  @spec generar_sello(String.t(), Path.t(), String.t() | nil) ::
+          {:ok, String.t()} | {:error, term()}
+  def generar_sello(cadena, keyfile, password \\ nil)
+      when is_binary(cadena) and is_binary(keyfile) do
+    case PrivateKey.from_file(keyfile, password) do
+      {:ok, pk} -> {:ok, PrivateKey.sign(pk, cadena)}
+      {:error, _} = err -> err
+    end
+  end
+
+  @doc """
+  Genera la cadena original, la firma con la llave privada del archivo dado,
+  guarda la cadena en `config[:cadena_original]` y escribe el atributo `Sello`.
+
+  Espejo de [`sellar(keyfile, password)`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L68)
+  de Node:
+
+      public async sellar(keyfile: string, password: string): Promise<void> {
+        const cadena = await this.generarCadenaOriginal();
+        const sello = await this.generarSello(cadena, keyfile, password);
+        this._cadenaOriginal = cadena;
+        this.setSello(sello);
+      }
+  """
+  @spec sellar(t(), Path.t(), String.t() | nil) :: {:ok, t()} | {:error, term()}
+  def sellar(%__MODULE__{comprobante: comp} = c, keyfile, password)
+      when is_binary(keyfile) do
+    with {:ok, cadena} <- generar_cadena_original(c),
+         {:ok, sello} <- generar_sello(cadena, keyfile, password) do
+      updated_comp = Comprobante.set_sello(comp, sello)
+      new_config = Map.put(c.config, :cadena_original, cadena)
+      {:ok, %{c | comprobante: updated_comp, config: new_config}}
+    end
+  end
+
+  @doc """
+  Devuelve la cadena original guardada por `sellar/3`, o `nil` si todavía no
+  fue sellado.
+
+  Espejo del getter [`cadenaOriginal`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L196)
+  de Node.
+  """
+  @spec cadena_original(t()) :: String.t() | nil
+  def cadena_original(%__MODULE__{config: cfg}), do: Map.get(cfg, :cadena_original)
 
   @doc """
   Proyecta el CFDI a un mapa.

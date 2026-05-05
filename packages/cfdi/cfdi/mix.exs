@@ -23,6 +23,7 @@ defmodule CFDI.MixProject do
   defp deps do
     [
       {:sat_certificados, path: "../../sat/certificados"},
+      {:cfdi_xml, path: "../xml"},
       {:cfdi_transform, path: "../transform"},
       {:cfdi_complementos, path: "../complementos"},
       {:sat_catalogos, path: "../../sat/catalogos"},

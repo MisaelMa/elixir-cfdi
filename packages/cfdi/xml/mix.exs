@@ -21,6 +21,9 @@ defmodule Cfdi.Xml.MixProject do
   end
 
   defp deps do
-    [{:saxy, "~> 1.5"}]
+    [
+      {:saxy, "~> 1.5"},
+      {:xml_builder, "~> 2.1"}
+    ]
   end
 end
