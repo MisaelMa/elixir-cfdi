@@ -37,29 +37,6 @@ defmodule CFDI do
 
   def certificar(%__MODULE__{}, _), do: {:error, :credential_must_be_credential_struct}
 
-  @doc """
-  Firma la cadena original y escribe el atributo `Sello` usando una credencial
-  ya cargada en `config[:credential]` y la cadena en `config[:cadena]`.
-
-  Para el flujo de alto nivel desde archivos, usar `sellar/3`.
-  """
-  @spec sellar(t()) :: {:ok, t()} | {:error, atom()}
-  def sellar(%__MODULE__{comprobante: comp, config: cfg} = c) do
-    cadena = Map.get(cfg, :cadena) || Map.get(cfg, "cadena")
-    cred = Map.get(cfg, :credential)
-
-    cond do
-      is_nil(cadena) ->
-        {:error, :missing_cadena}
-
-      is_nil(cred) ->
-        {:error, :missing_credential}
-
-      true ->
-        sello = Credential.sign(cred, cadena)
-        {:ok, %{c | comprobante: struct(comp, %{Sello: sello})}}
-    end
-  end
 
   @doc """
   Asocia la ruta del XSLT que generará la cadena original.
@@ -115,6 +92,32 @@ defmodule CFDI do
     end
   end
 
+
+   @doc """
+  Firma la cadena original y escribe el atributo `Sello` usando una credencial
+  ya cargada en `config[:credential]` y la cadena en `config[:cadena]`.
+
+  Para el flujo de alto nivel desde archivos, usar `sellar/3`.
+  """
+  @spec sellar(t()) :: {:ok, t()} | {:error, atom()}
+  def sellar(%__MODULE__{comprobante: comp, config: cfg} = c) do
+    cadena = Map.get(cfg, :cadena) || Map.get(cfg, "cadena")
+    cred = Map.get(cfg, :credential)
+
+    cond do
+      is_nil(cadena) ->
+        {:error, :missing_cadena}
+
+      is_nil(cred) ->
+        {:error, :missing_credential}
+
+      true ->
+        sello = Credential.sign(cred, cadena)
+        {:ok, %{c | comprobante: struct(comp, %{Sello: sello})}}
+    end
+  end
+
+
   @doc """
   Genera la cadena original, la firma con la llave privada del archivo dado,
   guarda la cadena en `config[:cadena_original]` y escribe el atributo `Sello`.
@@ -135,6 +138,16 @@ defmodule CFDI do
     with {:ok, cadena} <- generar_cadena_original(c),
          {:ok, sello} <- generar_sello(cadena, keyfile, password) do
       updated_comp = Comprobante.set_sello(comp, sello)
+      new_config = Map.put(c.config, :cadena_original, cadena)
+      {:ok, %{c | comprobante: updated_comp, config: new_config}}
+    end
+  end
+
+  def sellar(%__MODULE__{} = c, %Sat.Certificados.Credential{} = credential) do
+
+    with {:ok, cadena} <- generar_cadena_original(c) do
+      sello = Credential.sign(credential, cadena)
+      updated_comp = Comprobante.set_sello(c.comprobante, sello)
       new_config = Map.put(c.config, :cadena_original, cadena)
       {:ok, %{c | comprobante: updated_comp, config: new_config}}
     end
