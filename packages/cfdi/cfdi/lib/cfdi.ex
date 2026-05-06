@@ -168,21 +168,123 @@ defmodule CFDI do
 
   Opciones:
     * `:ns` — `true` (default) incluye el prefijo `cfdi:` en los nombres de
-      elementos; `false` los omite (ej. `%{"Comprobante" => ...}`).
+      elementos y mantiene los atributos como átomos (`:Rfc`, `:Nombre`)
+      para distinguirlos de los elementos hijos; `false` los omite y
+      uniforma TODAS las llaves al tipo elegido en `:keys`.
 
-  Convenciones de llaves:
+    * `:keys` — controla el tipo de las llaves cuando `ns: false`. Sin efecto
+      con `ns: true` (la convención manda). Valores:
+        * `:string` (default) — todas las llaves son strings. Siempre seguro.
+        * `:existing` — llaves se convierten a átomo si ya existe en la
+          tabla global de átomos del VM; si no, quedan como string. Seguro
+          ante XML/llaves arbitrarias.
+        * `:atom` — todas las llaves se convierten a átomos vía
+          `String.to_atom/1`. **Peligroso** con XML externo: la tabla de
+          átomos no tiene GC y puede agotarse (`atom_table_full`). Usar
+          solo cuando se controla la fuente del XML.
+
+    * `:case` — controla la capitalización de las llaves cuando `ns: false`.
+      Sin efecto con `ns: true`. Valores:
+        * `:as_is` (default) — preserva la capitalización original (PascalCase
+          como en el XSD oficial: `NoCertificado`, `RegimenFiscal`).
+        * `:camel` — pasa la primera letra a minúscula para producir
+          camelCase idiomático (`noCertificado`, `regimenFiscal`). El resto
+          del nombre queda intacto (`UsoCFDI` → `usoCFDI`, preservando el
+          acrónimo final). Útil al exportar a JSON o sistemas JS que
+          esperan camelCase.
+
+  Convenciones de llaves cuando `ns: true`:
     * strings (`"cfdi:Emisor"`) son elementos XML.
     * átomos (`:Rfc`, `:Nombre`) son atributos XML.
+
+  Cuando `ns: false`, las llaves se uniforman para una vista plana — útil
+  para inspección, serialización a JSON o consumo desde sistemas que no
+  distinguen entre atributos y elementos.
   """
   @spec to_map(t()) :: map()
   def to_map(%__MODULE__{} = cfdi), do: to_map(cfdi, [])
 
   @spec to_map(t(), keyword()) :: map()
-  def to_map(%__MODULE__{comprobante: nil}, _opts), do: %{}
+  def to_map(%__MODULE__{} = cfdi, opts) when is_list(opts) do
+    base = to_internal_map(cfdi, opts)
 
-  def to_map(%__MODULE__{comprobante: %Comprobante{} = comp}, opts) do
+    if Keyword.get(opts, :ns, true) do
+      base
+    else
+      keys_mode = Keyword.get(opts, :keys, :string)
+      case_mode = Keyword.get(opts, :case, :as_is)
+      transform_keys(base, key_transformer(keys_mode, case_mode))
+    end
+  end
+
+  # Proyección interna: SIEMPRE preserva la convención atom-vs-string para
+  # que `to_xml` pueda reconstruir el XML. `to_map` público aplica el
+  # transform de llaves cuando `ns: false`.
+  defp to_internal_map(%__MODULE__{comprobante: nil}, _opts), do: %{}
+
+  defp to_internal_map(%__MODULE__{comprobante: %Comprobante{} = comp}, opts) do
     Comprobante.to_map(comp, opts)
   end
+
+  defp transform_keys(map, fun) when is_map(map) do
+    Map.new(map, fn {k, v} -> {fun.(k), transform_keys(v, fun)} end)
+  end
+
+  defp transform_keys(list, fun) when is_list(list),
+    do: Enum.map(list, &transform_keys(&1, fun))
+
+  defp transform_keys(other, _fun), do: other
+
+  # Compone case-fn (string→string) seguido de keys-fn (string|atom → string|atom).
+  defp key_transformer(keys_mode, case_mode) do
+    case_fn = case_fn(case_mode)
+    base_fn = base_key_fn(keys_mode)
+    fn k -> k |> case_fn.() |> base_fn.() end
+  end
+
+  defp base_key_fn(:string), do: &stringify_key/1
+  defp base_key_fn(:atom), do: &atomize_key/1
+  defp base_key_fn(:existing), do: &existing_atom_key/1
+
+  defp base_key_fn(other),
+    do:
+      raise(ArgumentError,
+        "opción :keys inválida: #{inspect(other)}; usar :string, :atom o :existing"
+      )
+
+  defp case_fn(:as_is), do: fn k -> k end
+  defp case_fn(:camel), do: &camel_case_key/1
+
+  defp case_fn(other),
+    do:
+      raise(ArgumentError,
+        "opción :case inválida: #{inspect(other)}; usar :as_is o :camel"
+      )
+
+  defp stringify_key(k) when is_atom(k), do: Atom.to_string(k)
+  defp stringify_key(k) when is_binary(k), do: k
+
+  defp atomize_key(k) when is_atom(k), do: k
+  defp atomize_key(k) when is_binary(k), do: String.to_atom(k)
+
+  defp existing_atom_key(k) when is_atom(k), do: k
+
+  defp existing_atom_key(k) when is_binary(k) do
+    String.to_existing_atom(k)
+  rescue
+    ArgumentError -> k
+  end
+
+  # Pasa la primera letra a minúscula, deja el resto intacto.
+  # `NoCertificado` → `noCertificado`, `Rfc` → `rfc`, `UsoCFDI` → `usoCFDI`.
+  # Devuelve siempre string; el `base_key_fn` luego convierte a átomo si
+  # corresponde.
+  defp camel_case_key(k) when is_atom(k), do: k |> Atom.to_string() |> camel_case_key()
+
+  defp camel_case_key(<<first::utf8, rest::binary>>),
+    do: String.downcase(<<first::utf8>>) <> rest
+
+  defp camel_case_key(""), do: ""
 
   @doc """
   Serializa el CFDI a XML respetando el orden de elementos que exige el
@@ -201,7 +303,7 @@ defmodule CFDI do
     format = if Keyword.get(opts, :pretty, false), do: :indent, else: :none
 
     cfdi
-    |> to_map(opts)
+    |> to_internal_map(opts)
     |> map_to_xml(format)
   end
 

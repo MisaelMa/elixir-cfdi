@@ -93,4 +93,44 @@ defmodule Sat.Certificados.Credential do
   @doc "Ver `Sat.Certificados.Certificate.is_csd?/1`."
   @spec is_csd?(t()) :: boolean()
   def is_csd?(%__MODULE__{certificate: c}), do: Certificate.is_csd?(c)
+
+  @doc """
+  Proyecta la credencial a un mapa con metadata del certificado anidada y
+  flags de la credencial.
+
+  La llave privada NO se incluye en el mapa (es PII; usar
+  `PrivateKey.sign/3` o `Credential.sign/3` para firmar sin extraerla).
+
+  Opciones:
+    * `:keys` — `:atom` (default), `:string` o `:existing`. Misma semántica
+      que `CFDI.to_map/2`. Se propaga al certificado anidado.
+  """
+  @spec to_map(t()) :: map()
+  def to_map(%__MODULE__{} = cred), do: to_map(cred, [])
+
+  @spec to_map(t(), keyword()) :: map()
+  def to_map(%__MODULE__{} = cred, opts) when is_list(opts) do
+    keys_mode = Keyword.get(opts, :keys, :atom)
+
+    base = %{
+      certificate: Certificate.to_map(cred.certificate, opts),
+      is_fiel: Certificate.is_fiel?(cred.certificate),
+      is_csd: Certificate.is_csd?(cred.certificate),
+      rfc: Certificate.rfc(cred.certificate),
+      legal_name: Certificate.legal_name(cred.certificate),
+      no_certificado: Certificate.no_certificado(cred.certificate),
+      valid: not Certificate.expired?(cred.certificate),
+      key_matches_certificate: key_matches_certificate?(cred)
+    }
+
+    # Solo transformamos las llaves del nivel exterior; el cert anidado ya
+    # vino con las llaves transformadas por `Certificate.to_map/2`.
+    Map.new(base, fn {k, v} -> {transform_key(k, keys_mode), v} end)
+  end
+
+  defp transform_key(k, :atom), do: k
+
+  defp transform_key(k, :string) when is_atom(k), do: Atom.to_string(k)
+
+  defp transform_key(k, :existing) when is_atom(k), do: k
 end

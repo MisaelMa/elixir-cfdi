@@ -80,7 +80,9 @@ defmodule CFDI.CertificarSellarTest do
       #XML
       IO.puts(CFDI.to_xml(sealed, [pretty: true]))
       IO.inspect(CFDI.to_map(sealed, ns: false), label: "Proyección a mapa sin namespaces")
-        IO.puts(CFDI.to_json(sealed, ns: false, pretty: true))
+      IO.puts(CFDI.to_json(sealed, ns: false, pretty: true))
+      IO.inspect(CFDI.to_map(sealed, ns: false, keys: :atom), label: "Proyección a mapa con namespaces")
+      IO.inspect(CFDI.to_map(sealed, ns: false, keys: :atom, case: :camel), label: "Proyección a mapa con namespaces")
       #sello = Map.fetch!(sealed.comprobante, :Sello)
 
       #assert is_binary(sello)

@@ -554,4 +554,49 @@ defmodule Sat.Certificados.Certificate do
   end
 
   defp decode_ber_string(_), do: :error
+
+  @doc """
+  Proyecta toda la metadata útil del certificado a un mapa con llaves
+  snake_case (átomos por default).
+
+  Incluye: tipo (CSD/FIEL), persona física o moral, RFC, nombre legal,
+  número de certificado SAT, número de serie hex, fechas de vigencia,
+  estado de expiración, fingerprints (SHA-1 y SHA-256), versión de la AC,
+  issuer, y subject completo (mapa con códigos LDAP estándar como
+  llaves: "CN", "O", "OU", "RFC", etc.).
+
+  La llave privada NO se incluye (es PII y vive en `PrivateKey`).
+
+  Opciones:
+    * `:keys` — `:atom` (default), `:string` o `:existing`. Misma semántica
+      que `CFDI.to_map/2`. Aplica al primer nivel y al mapa anidado bajo
+      `:subject`.
+  """
+  @spec to_map(t()) :: map()
+  def to_map(%__MODULE__{} = cert), do: to_map(cert, [])
+
+  @spec to_map(t(), keyword()) :: map()
+  def to_map(%__MODULE__{} = cert, opts) when is_list(opts) do
+    keys_mode = Keyword.get(opts, :keys, :atom)
+
+    base = %{
+      type: certificate_type(cert),
+      subject_type: subject_type(cert),
+      rfc: rfc(cert),
+      legal_name: legal_name(cert),
+      no_certificado: no_certificado(cert),
+      serial_number: serial_number(cert),
+      valid_from: valid_from(cert),
+      valid_to: valid_to(cert),
+      expired: expired?(cert),
+      valid: valid?(cert),
+      ac_version: ac_version(cert),
+      fingerprint_sha1: fingerprint(cert),
+      fingerprint_sha256: fingerprint_sha256(cert),
+      issuer: issuer(cert),
+      subject: subject(cert)
+    }
+
+    Sat.Certificados.MapKeys.transform(base, keys_mode)
+  end
 end

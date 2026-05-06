@@ -286,9 +286,319 @@ defmodule CFDIFullTest do
     assert CFDI.to_map(CFDI.new(build_comprobante())) == expected_map(true)
   end
 
-  test "to_map/2 con ns: false descarta el prefijo cfdi:" do
-    assert CFDI.to_map(CFDI.new(build_comprobante()), ns: false) == expected_map(false)
+  test "to_map/2 con ns: false descarta el prefijo cfdi: y uniforma todas las llaves a string" do
+    # `ns: false` proyecta una vista plana sin namespaces — los atributos
+    # también pasan de átomos a strings para que el mapa sea uniforme.
+    assert CFDI.to_map(CFDI.new(build_comprobante()), ns: false) ==
+             stringify_keys(expected_map(false))
   end
+
+  test "to_map/2 con ns: false, keys: :atom — pattern match con átomos PascalCase" do
+    map = CFDI.to_map(CFDI.new(build_comprobante()), ns: false, keys: :atom)
+
+    assert %{
+             Comprobante: %{
+               Version: "4.0",
+               FormaPago: "01",
+               TipoDeComprobante: "I",
+               LugarExpedicion: "06600",
+               Emisor: %{
+                 Rfc: "EKU9003173C9",
+                 Nombre: "ESCUELA KEMPER URGATE",
+                 RegimenFiscal: "603"
+               },
+               Receptor: %{
+                 Rfc: "CACX7605101P8",
+                 Nombre: "XOCHILT CASAS CHAVEZ",
+                 UsoCFDI: "G03",
+                 DomicilioFiscalReceptor: "36257",
+                 RegimenFiscalReceptor: "612"
+               },
+               Impuestos: %{
+                 TotalImpuestosTrasladados: "160.00",
+                 TotalImpuestosRetenidos: "100.00",
+                 Traslados: %{
+                   Traslado: [
+                     %{
+                       Base: "1000.00",
+                       Impuesto: "002",
+                       TipoFactor: "Tasa",
+                       TasaOCuota: "0.160000",
+                       Importe: "160.00"
+                     }
+                   ]
+                 },
+                 Retenciones: %{
+                   Retencion: [
+                     %{Base: "1000.00", Impuesto: "001", Importe: "100.00"}
+                   ]
+                 }
+               }
+             }
+           } = map
+  end
+
+  test "to_map/2 con ns: false, keys: :existing usa átomos solo si ya existen" do
+    # Las structs ya los crearon al compilar, así que `:Comprobante`,
+    # `:Emisor`, `:Rfc`, etc. existen como átomos en la VM.
+    map = CFDI.to_map(CFDI.new(build_comprobante()), ns: false, keys: :existing)
+
+    assert %{
+             Comprobante: %{
+               Version: "4.0",
+               Emisor: %{Rfc: "EKU9003173C9", RegimenFiscal: "603"},
+               Receptor: %{Rfc: "CACX7605101P8", UsoCFDI: "G03"}
+             }
+           } = map
+  end
+
+  test "to_map/2 con keys inválido lanza ArgumentError" do
+    assert_raise ArgumentError, ~r/:keys inválida/, fn ->
+      CFDI.to_map(CFDI.new(build_comprobante()), ns: false, keys: :foo)
+    end
+  end
+
+  test "to_map/2 con case: :camel — pattern match con strings camelCase" do
+    map = CFDI.to_map(CFDI.new(build_comprobante()), ns: false, case: :camel)
+
+    assert %{
+             "comprobante" => %{
+               "version" => "4.0",
+               "formaPago" => "01",
+               "tipoDeComprobante" => "I",
+               "lugarExpedicion" => "06600",
+               "emisor" => %{
+                 "rfc" => "EKU9003173C9",
+                 "nombre" => "ESCUELA KEMPER URGATE",
+                 "regimenFiscal" => "603"
+               },
+               "receptor" => %{
+                 "rfc" => "CACX7605101P8",
+                 "nombre" => "XOCHILT CASAS CHAVEZ",
+                 # Acrónimo final preservado.
+                 "usoCFDI" => "G03",
+                 "domicilioFiscalReceptor" => "36257",
+                 "regimenFiscalReceptor" => "612"
+               },
+               "impuestos" => %{
+                 "totalImpuestosTrasladados" => "160.00",
+                 "traslados" => %{
+                   "traslado" => [
+                     %{"tipoFactor" => "Tasa", "importe" => "160.00"}
+                   ]
+                 }
+               }
+             }
+           } = map
+  end
+
+  test "to_map/2 con keys: :atom + case: :camel — pattern match con átomos camelCase" do
+    map = CFDI.to_map(CFDI.new(build_comprobante()), ns: false, keys: :atom, case: :camel)
+
+    assert %{
+             comprobante: %{
+               version: "4.0",
+               formaPago: "01",
+               tipoDeComprobante: "I",
+               lugarExpedicion: "06600",
+               emisor: %{
+                 rfc: "EKU9003173C9",
+                 nombre: "ESCUELA KEMPER URGATE",
+                 regimenFiscal: "603"
+               },
+               receptor: %{
+                 rfc: "CACX7605101P8",
+                 # Acrónimo final preservado en la conversión :camel.
+                 usoCFDI: "G03",
+                 domicilioFiscalReceptor: "36257",
+                 regimenFiscalReceptor: "612"
+               },
+               impuestos: %{
+                 traslados: %{
+                   traslado: [
+                     %{tipoFactor: "Tasa", importe: "160.00"}
+                   ]
+                 }
+               }
+             }
+           } = map
+  end
+
+  test "to_json/2 con case: :camel — pattern match sobre el JSON decodificado" do
+    json = CFDI.to_json(CFDI.new(build_comprobante()), ns: false, case: :camel)
+    decoded = Jason.decode!(json)
+
+    # Jason siempre decodifica con string keys → pattern match con strings.
+    assert %{
+             "comprobante" => %{
+               "version" => "4.0",
+               "formaPago" => "01",
+               "tipoDeComprobante" => "I",
+               "emisor" => %{
+                 "rfc" => "EKU9003173C9",
+                 "regimenFiscal" => "603"
+               },
+               "receptor" => %{
+                 "rfc" => "CACX7605101P8",
+                 "usoCFDI" => "G03"
+               }
+             }
+           } = decoded
+  end
+
+  test "to_map/2 con case inválido lanza ArgumentError" do
+    assert_raise ArgumentError, ~r/:case inválida/, fn ->
+      CFDI.to_map(CFDI.new(build_comprobante()), ns: false, case: :snake)
+    end
+  end
+
+  # ── Invariantes de regresión ──────────────────────────────────────────────
+  # Estos tests garantizan que las nuevas opciones (`:keys`, `:case`) no
+  # rompan los flujos críticos en el futuro.
+
+  test "to_xml/2 ignora :keys y :case (las opciones de proyección no afectan el XML)" do
+    cfdi = CFDI.new(build_comprobante())
+
+    # `to_xml` debe ser invariante a `:keys` y `:case` — esas opciones solo
+    # aplican al output de `to_map` público. Para cada valor de `:ns`,
+    # cualquier combinación de `:keys`/`:case` debe dar el mismo XML.
+
+    base_ns_true = CFDI.to_xml(cfdi, ns: true)
+
+    for opts <- [
+          [ns: true, keys: :atom],
+          [ns: true, keys: :existing],
+          [ns: true, case: :camel],
+          [ns: true, keys: :atom, case: :camel]
+        ] do
+      assert CFDI.to_xml(cfdi, opts) == base_ns_true,
+             "to_xml(ns: true, ...) cambió con opts=#{inspect(opts)}"
+    end
+
+    base_ns_false = CFDI.to_xml(cfdi, ns: false)
+
+    for opts <- [
+          [ns: false, keys: :atom],
+          [ns: false, keys: :existing],
+          [ns: false, case: :camel],
+          [ns: false, keys: :atom, case: :camel]
+        ] do
+      assert CFDI.to_xml(cfdi, opts) == base_ns_false,
+             "to_xml(ns: false, ...) cambió con opts=#{inspect(opts)}"
+    end
+  end
+
+  test "to_map/2 con ns: true ignora :keys y :case" do
+    cfdi = CFDI.new(build_comprobante())
+    base = CFDI.to_map(cfdi, ns: true)
+
+    # `:keys` y `:case` solo aplican con `ns: false`.
+    for opts <- [
+          [ns: true, keys: :atom],
+          [ns: true, keys: :existing],
+          [ns: true, case: :camel],
+          [ns: true, keys: :atom, case: :camel]
+        ] do
+      assert CFDI.to_map(cfdi, opts) == base,
+             "to_map(ns: true, ...) cambió con opts=#{inspect(opts)}"
+    end
+  end
+
+  test "to_map/2 con ns: false nunca contiene el prefijo cfdi: en ninguna llave" do
+    cfdi = CFDI.new(build_comprobante())
+
+    for opts <- [
+          [ns: false],
+          [ns: false, keys: :atom],
+          [ns: false, keys: :existing],
+          [ns: false, case: :camel],
+          [ns: false, keys: :atom, case: :camel]
+        ] do
+      map = CFDI.to_map(cfdi, opts)
+      refute deep_has_prefix?(map, "cfdi:"), "encontré 'cfdi:' con opts=#{inspect(opts)}"
+    end
+  end
+
+  test "to_map/2 con keys: :existing cae a string si el átomo no existe" do
+    # Sanity check del fallback: un átomo que nunca existió no debe
+    # crearse implícitamente.
+    fake_key = "ZzNoExisteEsteAtomoEnElVMxyz_#{System.unique_integer([:positive])}"
+    assert_raise ArgumentError, fn -> String.to_existing_atom(fake_key) end
+
+    # Las llaves del schema oficial SÍ existen como átomos (las structs los
+    # crearon al compilar) → deben resolver a átomo. Pattern match completo.
+    map = CFDI.to_map(CFDI.new(build_comprobante()), ns: false, keys: :existing)
+
+    assert %{
+             Comprobante: %{
+               Version: "4.0",
+               Emisor: %{Rfc: "EKU9003173C9"},
+               Receptor: %{Rfc: "CACX7605101P8"}
+             }
+           } = map
+  end
+
+  test "to_json/2 produce JSON parseable con todas las combinaciones de opts" do
+    cfdi = CFDI.new(build_comprobante())
+
+    for opts <- [
+          [],
+          [ns: false],
+          [ns: false, keys: :atom],
+          [ns: false, keys: :existing],
+          [ns: false, case: :camel],
+          [ns: false, keys: :atom, case: :camel],
+          [pretty: true],
+          [ns: false, case: :camel, pretty: true]
+        ] do
+      json = CFDI.to_json(cfdi, opts)
+      assert is_binary(json)
+      assert {:ok, _} = Jason.decode(json), "JSON inválido con opts=#{inspect(opts)}"
+    end
+  end
+
+  test "to_map/2 con case: :camel es idempotente para palabras ya en minúscula" do
+    # `camel_case_key` solo baja la primera letra; si ya está en minúscula
+    # debe quedar intacto. Pattern match: la llave camelCase está,
+    # la PascalCase NO.
+    cfdi = CFDI.new(build_comprobante())
+    map = CFDI.to_map(cfdi, ns: false, case: :camel)
+
+    assert %{"comprobante" => %{"version" => "4.0"}} = map
+    refute match?(%{"Comprobante" => _}, map)
+    refute match?(%{"comprobante" => %{"Version" => _}}, map)
+  end
+
+  test "to_map/2 con keys: :atom + case: :camel produce JSON serializable" do
+    # Verifica que la combinación más exótica (átomos camelCase) produce
+    # un mapa que Jason puede serializar sin perder información.
+    cfdi = CFDI.new(build_comprobante())
+    map = CFDI.to_map(cfdi, ns: false, keys: :atom, case: :camel)
+
+    # Las llaves son átomos: chequeo directo con átomos.
+    assert is_atom(hd(Map.keys(map)))
+
+    # Roundtrip a JSON y back a mapa con strings: debe coincidir con la
+    # versión :string + :camel.
+    json = Jason.encode!(map)
+    decoded = Jason.decode!(json)
+
+    expected_strings = CFDI.to_map(cfdi, ns: false, keys: :string, case: :camel)
+    assert decoded == expected_strings
+  end
+
+  # Helper: recorre recursivamente y reporta si alguna llave contiene `prefix`.
+  defp deep_has_prefix?(map, prefix) when is_map(map) do
+    Enum.any?(map, fn {k, v} ->
+      key_str = to_string(k)
+      String.starts_with?(key_str, prefix) or deep_has_prefix?(v, prefix)
+    end)
+  end
+
+  defp deep_has_prefix?(list, prefix) when is_list(list),
+    do: Enum.any?(list, &deep_has_prefix?(&1, prefix))
+
+  defp deep_has_prefix?(_other, _prefix), do: false
 
   test "to_json/2 coincide con la proyección a mapa decodificada" do
     cfdi = CFDI.new(build_comprobante())
