@@ -23,6 +23,7 @@ defmodule Sat.Certificados.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:clir_openssl, path: "../../clir/openssl"}
     ]
   end

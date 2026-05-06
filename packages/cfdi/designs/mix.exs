@@ -22,6 +22,7 @@ defmodule Cfdi.Designs.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:cfdi_xml, path: "../xml"},
       {:cfdi_utils, path: "../utils"},
       {:cfdi_types, path: "../types"},

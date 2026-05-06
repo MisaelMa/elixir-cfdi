@@ -21,7 +21,9 @@ defmodule Sat.Diot.MixProject do
   end
 
   defp deps do
-    []
+    [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
+    ]
   end
 
   defp package do

@@ -23,6 +23,7 @@ defmodule Cfdi.Xml.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:saxy, "~> 1.5"},
       {:xml_builder, "~> 2.1"}
     ]

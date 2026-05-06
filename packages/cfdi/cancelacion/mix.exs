@@ -22,6 +22,7 @@ defmodule Cfdi.Cancelacion.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:sat_auth, path: "../../sat/auth"},
       {:req, "~> 0.5"}
     ]

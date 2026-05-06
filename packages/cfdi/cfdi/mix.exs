@@ -23,6 +23,7 @@ defmodule CFDI.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:sat_certificados, path: "../../sat/certificados"},
       {:cfdi_xml, path: "../xml"},
       {:cfdi_transform, path: "../transform"},

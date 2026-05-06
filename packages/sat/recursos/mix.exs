@@ -22,6 +22,7 @@ defmodule Sat.Recursos.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:req, "~> 0.5"},
       {:plug, "~> 1.0", only: :test}
     ]

@@ -23,6 +23,7 @@ defmodule Sat.Xsd.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:ex_json_schema, "~> 0.10"},
       {:jason, "~> 1.0"}
     ]

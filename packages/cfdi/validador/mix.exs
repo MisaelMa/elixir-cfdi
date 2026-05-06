@@ -21,7 +21,10 @@ defmodule Cfdi.Validador.MixProject do
   end
 
   defp deps do
-    [{:saxy, "~> 1.5"}]
+    [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:saxy, "~> 1.5"}
+    ]
   end
 
   defp package do

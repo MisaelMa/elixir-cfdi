@@ -21,7 +21,10 @@ defmodule Renapo.Curp.MixProject do
   end
 
   defp deps do
-    [{:req, "~> 0.5"}]
+    [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:req, "~> 0.5"}
+    ]
   end
 
   defp package do

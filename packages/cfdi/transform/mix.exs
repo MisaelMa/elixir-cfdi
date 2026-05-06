@@ -23,6 +23,7 @@ defmodule Cfdi.Transform.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:saxy, "~> 1.5"},
       {:saxon_he, path: "../../clir/saxon_he", only: [:dev, :test]}
     ]

@@ -23,7 +23,7 @@ defmodule SAT_CFDI.MixProject do
       clir_apps() ++
       renapo_apps() ++
       [
-        {:releaser, "~> 0.0.5", only: :dev, runtime: false}
+        {:releaser, "~> 0.0.7", only: :dev, runtime: false}
       ]
   end
 
