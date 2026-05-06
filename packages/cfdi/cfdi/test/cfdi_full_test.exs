@@ -6,7 +6,18 @@ defmodule CFDIFullTest do
 
   use ExUnit.Case, async: true
 
-  alias Cfdi.{Comprobante, Concepto, Emisor, Impuestos, InformacionGlobal, Receptor, Relacionado, Retencion, Traslado}
+  alias Cfdi.{
+    Comprobante,
+    Concepto,
+    Emisor,
+    Impuestos,
+    InformacionGlobal,
+    Receptor,
+    Relacionado,
+    Retencion,
+    Traslado
+  }
+
   alias Cfdi.Concepto.Parte
 
   defp build_comprobante do
@@ -621,23 +632,25 @@ defmodule CFDIFullTest do
   # -- Árbol XML esperado (Saxy SimpleForm) -----------------------------------
 
   defp expected_xml_tree do
-    traslado = {"cfdi:Traslado",
-                [
-                  {"Base", "1000.00"},
-                  {"Impuesto", "002"},
-                  {"TipoFactor", "Tasa"},
-                  {"TasaOCuota", "0.160000"},
-                  {"Importe", "160.00"}
-                ], []}
+    traslado =
+      {"cfdi:Traslado",
+       [
+         {"Base", "1000.00"},
+         {"Impuesto", "002"},
+         {"TipoFactor", "Tasa"},
+         {"TasaOCuota", "0.160000"},
+         {"Importe", "160.00"}
+       ], []}
 
-    retencion = {"cfdi:Retencion",
-                 [
-                   {"Base", "1000.00"},
-                   {"Impuesto", "001"},
-                   {"TipoFactor", "Tasa"},
-                   {"TasaOCuota", "0.100000"},
-                   {"Importe", "100.00"}
-                 ], []}
+    retencion =
+      {"cfdi:Retencion",
+       [
+         {"Base", "1000.00"},
+         {"Impuesto", "001"},
+         {"TipoFactor", "Tasa"},
+         {"TasaOCuota", "0.100000"},
+         {"Importe", "100.00"}
+       ], []}
 
     impuestos_concepto =
       {"cfdi:Impuestos", [],
@@ -658,8 +671,7 @@ defmodule CFDIFullTest do
          {"Importe", "500.00"}
        ],
        [
-         {"cfdi:InformacionAduanera",
-          [{"NumeroPedimento", "10  24  3001 0007777"}], []}
+         {"cfdi:InformacionAduanera", [{"NumeroPedimento", "10  24  3001 0007777"}], []}
        ]}
 
     concepto =
@@ -685,8 +697,7 @@ defmodule CFDIFullTest do
             {"RegimenFiscalACuentaTerceros", "601"},
             {"DomicilioFiscalACuentaTerceros", "06600"}
           ], []},
-         {"cfdi:InformacionAduanera",
-          [{"NumeroPedimento", "15  48  0301 0001234"}], []},
+         {"cfdi:InformacionAduanera", [{"NumeroPedimento", "15  48  0301 0001234"}], []},
          {"cfdi:CuentaPredial", [{"Numero", "CP-999"}], []},
          {"cfdi:ComplementoConcepto", [],
           [
@@ -732,14 +743,11 @@ defmodule CFDIFullTest do
        {"LugarExpedicion", "06600"}
      ],
      [
-       {"cfdi:InformacionGlobal",
-        [{"Periodicidad", "01"}, {"Meses", "01"}, {"Año", "2026"}], []},
+       {"cfdi:InformacionGlobal", [{"Periodicidad", "01"}, {"Meses", "01"}, {"Año", "2026"}], []},
        {"cfdi:CfdiRelacionados", [{"TipoRelacion", "04"}],
         [
-          {"cfdi:CfdiRelacionado",
-           [{"UUID", "11111111-1111-1111-1111-111111111111"}], []},
-          {"cfdi:CfdiRelacionado",
-           [{"UUID", "22222222-2222-2222-2222-222222222222"}], []}
+          {"cfdi:CfdiRelacionado", [{"UUID", "11111111-1111-1111-1111-111111111111"}], []},
+          {"cfdi:CfdiRelacionado", [{"UUID", "22222222-2222-2222-2222-222222222222"}], []}
         ]},
        {"cfdi:Emisor",
         [
@@ -770,7 +778,8 @@ defmodule CFDIFullTest do
   # por lo que la lista de children se preserva tal cual.
 
   defp normalize({tag, attrs, children}) do
-    {tag, Enum.sort_by(attrs, &elem(&1, 0)), Enum.map(children, &normalize/1) |> Enum.reject(&ignorable?/1)}
+    {tag, Enum.sort_by(attrs, &elem(&1, 0)),
+     Enum.map(children, &normalize/1) |> Enum.reject(&ignorable?/1)}
   end
 
   defp normalize(text) when is_binary(text), do: text

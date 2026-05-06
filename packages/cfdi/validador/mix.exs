@@ -11,7 +11,8 @@ defmodule Cfdi.Validador.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Validación basada en reglas para CFDI"
+      description: "Validación basada en reglas para CFDI",
+      package: package()
     ]
   end
 
@@ -21,5 +22,13 @@ defmodule Cfdi.Validador.MixProject do
 
   defp deps do
     [{:saxy, "~> 1.5"}]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
+    ]
   end
 end

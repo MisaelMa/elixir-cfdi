@@ -42,7 +42,10 @@ defmodule Cfdi.Cancelacion.CancelacionCfdi do
 
   @spec aceptar_rechazar(t(), AceptacionRechazoParams.t()) ::
           {:ok, Cfdi.Cancelacion.Types.AceptacionRechazoResult.t()} | {:error, String.t()}
-  def aceptar_rechazar(%__MODULE__{token: token, credential: cred}, %AceptacionRechazoParams{} = params) do
+  def aceptar_rechazar(
+        %__MODULE__{token: token, credential: cred},
+        %AceptacionRechazoParams{} = params
+      ) do
     fecha = fecha_sat_iso()
     {cert, sig, _} = sign_components(cred, "AceptacionRechazo-#{params.uuid}")
 

@@ -306,6 +306,7 @@ defmodule Cfdi.CatalogosTest do
 
     test "626 (RESICO) is present" do
       assert RegimenFiscal.valid?("626")
+
       assert {:ok, %{value: "626", label: "Régimen Simplificado de Confianza"}} =
                RegimenFiscal.from_code("626")
     end

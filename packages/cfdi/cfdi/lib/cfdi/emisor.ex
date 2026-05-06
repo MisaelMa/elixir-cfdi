@@ -3,8 +3,8 @@ defmodule Cfdi.Emisor do
 
   use Cfdi.Xml.Element, tag: "cfdi:Emisor"
 
-  attribute :Rfc, :string
-  attribute :Nombre, :string
-  attribute :RegimenFiscal, :string
-  attribute :FacAtrAdquirente, :string
+  attribute(:Rfc, :string)
+  attribute(:Nombre, :string)
+  attribute(:RegimenFiscal, :string)
+  attribute(:FacAtrAdquirente, :string)
 end

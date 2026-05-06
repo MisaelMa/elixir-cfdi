@@ -1,7 +1,15 @@
 defmodule Cfdi.RetencionesTest do
   use ExUnit.Case, async: true
 
-  alias Cfdi.Retenciones.Types.{Retencion20, EmisorRetencion, ReceptorRetencion, ReceptorNacional, PeriodoRetencion, TotalesRetencion}
+  alias Cfdi.Retenciones.Types.{
+    Retencion20,
+    EmisorRetencion,
+    ReceptorRetencion,
+    ReceptorNacional,
+    PeriodoRetencion,
+    TotalesRetencion
+  }
+
   alias Cfdi.Retenciones.Builders.Retencion20, as: Builder
 
   test "build retencion20 XML" do

@@ -4,7 +4,13 @@ defmodule Cfdi.Retenciones.Builders.Retencion20 do
   """
 
   alias Cfdi.Retenciones.Types
-  alias Cfdi.Retenciones.Types.{Retencion20, EmisorRetencion, ReceptorRetencion, ComplementoRetencion}
+
+  alias Cfdi.Retenciones.Types.{
+    Retencion20,
+    EmisorRetencion,
+    ReceptorRetencion,
+    ComplementoRetencion
+  }
 
   @p "retenciones"
 
@@ -52,6 +58,7 @@ defmodule Cfdi.Retenciones.Builders.Retencion20 do
       cond do
         r.nacionalidad_r == "Nacional" && r.nacional ->
           n = r.nacional
+
           ~s(<#{@p}:Nacional) <>
             ~s( RFCRecep="#{esc(n.rfc_recep)}") <>
             opt_attr("NomDenRazSocR", n.nom_den_raz_soc_r) <>
@@ -60,6 +67,7 @@ defmodule Cfdi.Retenciones.Builders.Retencion20 do
 
         r.nacionalidad_r == "Extranjero" && r.extranjero ->
           e = r.extranjero
+
           ~s(<#{@p}:Extranjero) <>
             opt_attr("NumRegIdTrib", e.num_reg_id_trib) <>
             ~s( NomDenRazSocR="#{esc(e.nom_den_raz_soc_r)}") <>

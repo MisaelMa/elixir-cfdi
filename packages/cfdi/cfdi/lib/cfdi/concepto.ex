@@ -5,24 +5,24 @@ defmodule Cfdi.Concepto do
 
   alias Cfdi.Concepto.{ACuentaTerceros, Complemento, CuentaPredial, InformacionAduanera, Parte}
 
-  attribute :ClaveProdServ, :string
-  attribute :NoIdentificacion, :string
-  attribute :Cantidad, :string
-  attribute :ClaveUnidad, :string
-  attribute :Unidad, :string
-  attribute :Descripcion, :string
-  attribute :ValorUnitario, :string
-  attribute :Importe, :string
-  attribute :Descuento, :string
-  attribute :ObjetoImp, :string
+  attribute(:ClaveProdServ, :string)
+  attribute(:NoIdentificacion, :string)
+  attribute(:Cantidad, :string)
+  attribute(:ClaveUnidad, :string)
+  attribute(:Unidad, :string)
+  attribute(:Descripcion, :string)
+  attribute(:ValorUnitario, :string)
+  attribute(:Importe, :string)
+  attribute(:Descuento, :string)
+  attribute(:ObjetoImp, :string)
 
-  child :traslados, :list
-  child :retenciones, :list
-  child :informacion_aduanera, :list
-  child :cuenta_predial, :map
-  child :a_cuenta_terceros, :map
-  child :parte, :list
-  child :complemento, :map
+  child(:traslados, :list)
+  child(:retenciones, :list)
+  child(:informacion_aduanera, :list)
+  child(:cuenta_predial, :map)
+  child(:a_cuenta_terceros, :map)
+  child(:parte, :list)
+  child(:complemento, :map)
 
   @doc """
   Añade un `cfdi:Traslado` al concepto.
@@ -56,7 +56,8 @@ defmodule Cfdi.Concepto do
     %{c | informacion_aduanera: list}
   end
 
-  def add_informacion_aduanera(c, pedimento) when is_struct(c, __MODULE__) and is_binary(pedimento) do
+  def add_informacion_aduanera(c, pedimento)
+      when is_struct(c, __MODULE__) and is_binary(pedimento) do
     add_informacion_aduanera(c, %InformacionAduanera{NumeroPedimento: pedimento})
   end
 
@@ -101,7 +102,8 @@ defmodule Cfdi.Concepto do
   del `setParteInformacionAduanera` del paquete Node, que solo imprime una
   advertencia.
   """
-  def add_parte_informacion_aduanera(c, pedimento) when is_struct(c, __MODULE__) and is_binary(pedimento) do
+  def add_parte_informacion_aduanera(c, pedimento)
+      when is_struct(c, __MODULE__) and is_binary(pedimento) do
     case c.parte do
       nil ->
         c
@@ -232,9 +234,7 @@ defmodule Cfdi.Concepto do
 
     kids = Enum.reject(kids, &is_nil/1)
 
-    XmlBuilder.element(
-      {"cfdi:Concepto", Cfdi.Xml.Element.__build_attrs__(c, __MODULE__), kids}
-    )
+    XmlBuilder.element({"cfdi:Concepto", Cfdi.Xml.Element.__build_attrs__(c, __MODULE__), kids})
   end
 
   @doc """

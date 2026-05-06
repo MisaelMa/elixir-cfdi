@@ -31,6 +31,7 @@ defmodule Sat.Certificados.ToMapTest do
     test "default :atom — pattern match con átomos snake_case", %{cert: cert} do
       map = Certificate.to_map(cert)
       IO.inspect(map, label: "Certificate.to_map/2 :atom")
+
       assert %{
                type: :csd,
                subject_type: :moral,
@@ -46,7 +47,10 @@ defmodule Sat.Certificados.ToMapTest do
                fingerprint_sha256: fp256,
                # `issuer` y `subject` son Distinguished Names (mapas con
                # códigos LDAP). En modo :atom van como átomos.
-               issuer: %{CN: "A.C. 2 de pruebas(4096)", O: "Servicio de Administración Tributaria"},
+               issuer: %{
+                 CN: "A.C. 2 de pruebas(4096)",
+                 O: "Servicio de Administración Tributaria"
+               },
                subject: %{CN: "CINDEMEX SA DE CV", O: "CINDEMEX SA DE CV"}
              } = map
 

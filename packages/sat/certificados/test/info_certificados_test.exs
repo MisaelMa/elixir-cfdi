@@ -173,9 +173,14 @@ defmodule Cfdi.InfoCertificadosTest do
     {:RSAPublicKey, modulus, exponent} = Certificate.public_key(cert)
     linea("Tamaño módulo RSA (bits)", bit_length(modulus))
     linea("Exponente público", exponent)
-    linea("PEM (primeros 80 chars)", String.slice(Certificate.public_key_pem(cert), 0, 80) <> "...")
+
+    linea(
+      "PEM (primeros 80 chars)",
+      String.slice(Certificate.public_key_pem(cert), 0, 80) <> "..."
+    )
 
     seccion("--- Llave privada ---")
+
     case key_result do
       {:ok, key} ->
         linea("Carga", "OK (con contraseña #{inspect(pwd)})")
@@ -190,7 +195,11 @@ defmodule Cfdi.InfoCertificadosTest do
             linea("¿Llave coincide con cert?", Credential.key_matches_certificate?(cred))
             sello = Credential.sign(cred, "||cadena|original|de|prueba||")
             linea("Sello SHA-256 base64 (primeros 60 chars)", String.slice(sello, 0, 60) <> "...")
-            linea("Verificación de sello", Credential.verify(cred, "||cadena|original|de|prueba||", sello))
+
+            linea(
+              "Verificación de sello",
+              Credential.verify(cred, "||cadena|original|de|prueba||", sello)
+            )
 
           {:error, reason} ->
             linea("Credential.create", "ERROR: #{inspect(reason)}")

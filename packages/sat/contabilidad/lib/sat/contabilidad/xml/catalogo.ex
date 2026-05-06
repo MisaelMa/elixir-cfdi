@@ -10,7 +10,11 @@ defmodule Sat.Contabilidad.Xml.Catalogo do
 
   @spec build(ContribuyenteInfo.t(), [CuentaCatalogo.t()], String.t()) :: String.t()
   def build(info, cuentas, version \\ "1.3") do
-    ns = if version == "1.3", do: @ns_catalogo_13, else: String.replace(@ns_catalogo_13, "1_3", "1_1")
+    ns =
+      if version == "1.3",
+        do: @ns_catalogo_13,
+        else: String.replace(@ns_catalogo_13, "1_3", "1_1")
+
     tipo_envio = Types.tipo_envio_value(info.tipo_envio)
     natur_value = fn n -> Types.naturaleza_cuenta_value(n) end
 
@@ -18,6 +22,7 @@ defmodule Sat.Contabilidad.Xml.Catalogo do
       cuentas
       |> Enum.map(fn c ->
         sub_cta = if c.sub_cta_de, do: ~s( SubCtaDe="#{c.sub_cta_de}"), else: ""
+
         ~s(  <catalogocuentas:Ctas CodAgrup="#{c.cod_agrup}" NumCta="#{c.num_cta}" Desc="#{c.desc}"#{sub_cta} Nivel="#{c.nivel}" Natur="#{natur_value.(c.natur)}"/>)
       end)
       |> Enum.join("\n")

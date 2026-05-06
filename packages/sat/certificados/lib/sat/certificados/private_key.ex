@@ -48,7 +48,9 @@ defmodule Sat.Certificados.PrivateKey do
 
   defp load_plain_der(der) do
     case try_decode(:PrivateKeyInfo, der) do
-      {:ok, decoded} -> {:ok, %__MODULE__{raw_der: der, decoded: decoded}}
+      {:ok, decoded} ->
+        {:ok, %__MODULE__{raw_der: der, decoded: decoded}}
+
       _ ->
         case try_decode(:RSAPrivateKey, der) do
           {:ok, decoded} -> {:ok, %__MODULE__{raw_der: der, decoded: decoded}}
@@ -129,8 +131,8 @@ defmodule Sat.Certificados.PrivateKey do
 
     pki =
       {:PrivateKeyInfo, :v1,
-       {:PrivateKeyInfo_privateKeyAlgorithm, {1, 2, 840, 113_549, 1, 1, 1}, {:asn1_OPENTYPE, <<5, 0>>}}, der,
-       :asn1_NOVALUE}
+       {:PrivateKeyInfo_privateKeyAlgorithm, {1, 2, 840, 113_549, 1, 1, 1},
+        {:asn1_OPENTYPE, <<5, 0>>}}, der, :asn1_NOVALUE}
 
     pki_der = :public_key.der_encode(:PrivateKeyInfo, pki)
     :public_key.pem_encode([{:PrivateKeyInfo, pki_der, :not_encrypted}])

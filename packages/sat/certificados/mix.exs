@@ -12,6 +12,7 @@ defmodule Sat.Certificados.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "CSD — .cer / .key para CFDI",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -23,6 +24,14 @@ defmodule Sat.Certificados.MixProject do
   defp deps do
     [
       {:clir_openssl, path: "../../clir/openssl"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

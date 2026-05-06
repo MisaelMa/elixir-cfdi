@@ -11,7 +11,8 @@ defmodule Cfdi.Types.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Interfaces y tipos para CFDI 4.0"
+      description: "Interfaces y tipos para CFDI 4.0",
+      package: package()
     ]
   end
 
@@ -21,5 +22,13 @@ defmodule Cfdi.Types.MixProject do
 
   defp deps do
     []
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
+    ]
   end
 end

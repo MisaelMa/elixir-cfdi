@@ -134,7 +134,9 @@ defmodule Cfdi.Xml.Element do
 
           @spec to_element(t(), iodata()) :: tuple()
           def to_element(%__MODULE__{} = el, kids) do
-            XmlBuilder.element({@xml_tag, Cfdi.Xml.Element.__build_attrs__(el, __MODULE__), List.wrap(kids)})
+            XmlBuilder.element(
+              {@xml_tag, Cfdi.Xml.Element.__build_attrs__(el, __MODULE__), List.wrap(kids)}
+            )
           end
         end
       else

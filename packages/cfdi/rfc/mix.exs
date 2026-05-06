@@ -11,7 +11,8 @@ defmodule Cfdi.Rfc.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Validación de RFC del SAT (persona física y moral)"
+      description: "Validación de RFC del SAT (persona física y moral)",
+      package: package()
     ]
   end
 
@@ -21,5 +22,13 @@ defmodule Cfdi.Rfc.MixProject do
 
   defp deps do
     []
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
+    ]
   end
 end

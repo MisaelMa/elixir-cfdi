@@ -3,11 +3,11 @@ defmodule Cfdi.Traslado do
 
   use Cfdi.Xml.Element, tag: "cfdi:Traslado"
 
-  attribute :Base, :string
-  attribute :Impuesto, :string
-  attribute :TipoFactor, :string
-  attribute :TasaOCuota, :string
-  attribute :Importe, :string
+  attribute(:Base, :string)
+  attribute(:Impuesto, :string)
+  attribute(:TipoFactor, :string)
+  attribute(:TasaOCuota, :string)
+  attribute(:Importe, :string)
 end
 
 defmodule Cfdi.Retencion do
@@ -15,11 +15,11 @@ defmodule Cfdi.Retencion do
 
   use Cfdi.Xml.Element, tag: "cfdi:Retencion"
 
-  attribute :Base, :string
-  attribute :Impuesto, :string
-  attribute :TipoFactor, :string
-  attribute :TasaOCuota, :string
-  attribute :Importe, :string
+  attribute(:Base, :string)
+  attribute(:Impuesto, :string)
+  attribute(:TipoFactor, :string)
+  attribute(:TasaOCuota, :string)
+  attribute(:Importe, :string)
 end
 
 defmodule Cfdi.Impuestos do
@@ -27,11 +27,11 @@ defmodule Cfdi.Impuestos do
 
   use Cfdi.Xml.Element, tag: "cfdi:Impuestos", accepts_children: true
 
-  attribute :TotalImpuestosTrasladados, :string
-  attribute :TotalImpuestosRetenidos, :string
+  attribute(:TotalImpuestosTrasladados, :string)
+  attribute(:TotalImpuestosRetenidos, :string)
 
-  child :traslados, :list
-  child :retenciones, :list
+  child(:traslados, :list)
+  child(:retenciones, :list)
 
   @doc """
   Añade un `cfdi:Traslado` al bloque global.

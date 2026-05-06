@@ -369,7 +369,9 @@ defmodule Sat.Certificados.Certificate do
   @spec valid?(t()) :: boolean()
   def valid?(%__MODULE__{} = cert) do
     now = DateTime.utc_now()
-    DateTime.compare(now, valid_from(cert)) != :lt and DateTime.compare(now, valid_to(cert)) != :gt
+
+    DateTime.compare(now, valid_from(cert)) != :lt and
+      DateTime.compare(now, valid_to(cert)) != :gt
   end
 
   @doc """
@@ -521,7 +523,7 @@ defmodule Sat.Certificados.Certificate do
   defp oid_to_attr_key({2, 5, 4, 11}), do: "OU"
   defp oid_to_attr_key({2, 5, 4, 42}), do: "givenName"
   defp oid_to_attr_key({2, 5, 4, 45}), do: "x500UniqueIdentifier"
-  defp oid_to_attr_key({0, 9, 2342, 19200300, 100, 1, 1}), do: "UID"
+  defp oid_to_attr_key({0, 9, 2342, 19_200_300, 100, 1, 1}), do: "UID"
   defp oid_to_attr_key(oid) when is_tuple(oid), do: oid |> Tuple.to_list() |> Enum.join(".")
 
   defp directory_string({:utf8String, b}) when is_binary(b), do: b

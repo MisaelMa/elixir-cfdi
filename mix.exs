@@ -53,7 +53,8 @@ defmodule SAT_CFDI.MixProject do
 
   defp sat_apps do
     [
-      {:sat_catalogos_codegen, path: "packages/sat/catalogos_codegen", only: :dev, runtime: false},
+      {:sat_catalogos_codegen,
+       path: "packages/sat/catalogos_codegen", only: :dev, runtime: false},
       {:sat_auth, path: "packages/sat/auth"},
       {:sat_banxico, path: "packages/sat/banxico"},
       {:sat_captcha, path: "packages/sat/captcha"},

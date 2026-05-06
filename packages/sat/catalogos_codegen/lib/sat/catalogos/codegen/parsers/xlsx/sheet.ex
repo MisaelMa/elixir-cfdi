@@ -90,7 +90,14 @@ defmodule Sat.Catalogos.Codegen.Parsers.Xlsx.Sheet do
 
   defp on_end("c", state) do
     value = resolve_value(state.current_cell_type, state.current_cell_value, state.shared_strings)
-    {:ok, %{state | current_row: [value | state.current_row], current_cell_type: nil, current_cell_value: nil}}
+
+    {:ok,
+     %{
+       state
+       | current_row: [value | state.current_row],
+         current_cell_type: nil,
+         current_cell_value: nil
+     }}
   end
 
   defp on_end("row", state) do

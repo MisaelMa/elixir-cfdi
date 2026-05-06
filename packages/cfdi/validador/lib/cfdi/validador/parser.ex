@@ -18,7 +18,9 @@ defmodule Cfdi.Validador.Parser do
     {to_string(name), attrs || [], Enum.map(children || [], &normalize_child/1)}
   end
 
-  defp normalize_child({n, a, c}), do: {:element, to_string(n), a || [], Enum.map(c || [], &normalize_child/1)}
+  defp normalize_child({n, a, c}),
+    do: {:element, to_string(n), a || [], Enum.map(c || [], &normalize_child/1)}
+
   defp normalize_child(text) when is_binary(text), do: {:text, text}
   defp normalize_child(other), do: {:text, to_string(other)}
 end

@@ -240,7 +240,7 @@ defmodule Clir.Openssl.X509 do
   defp oid_to_label({2, 5, 4, 11}), do: "OU"
   defp oid_to_label({2, 5, 4, 42}), do: "givenName"
   defp oid_to_label({2, 5, 4, 45}), do: "UID"
-  defp oid_to_label({0, 9, 2342, 19200300, 100, 1, 1}), do: "UID"
+  defp oid_to_label({0, 9, 2342, 19_200_300, 100, 1, 1}), do: "UID"
   defp oid_to_label(oid) when is_tuple(oid), do: oid |> Tuple.to_list() |> Enum.join(".")
 
   defp asn1_time_to_datetime({:utcTime, t}) do
@@ -253,7 +253,9 @@ defmodule Clir.Openssl.X509 do
         n -> 2000 + n
       end
 
-    <<mo::binary-size(2), d::binary-size(2), hh::binary-size(2), mm::binary-size(2), ss::binary-size(2), _z::binary>> =
+    <<mo::binary-size(2), d::binary-size(2), hh::binary-size(2), mm::binary-size(2),
+      ss::binary-size(2),
+      _z::binary>> =
       rest
 
     DateTime.new!(
@@ -266,8 +268,8 @@ defmodule Clir.Openssl.X509 do
   defp asn1_time_to_datetime({:generalTime, t}) do
     s = to_string_list(t)
 
-    <<y::binary-size(4), mo::binary-size(2), d::binary-size(2), hh::binary-size(2), mm::binary-size(2),
-      ss::binary-size(2), _::binary>> = s
+    <<y::binary-size(4), mo::binary-size(2), d::binary-size(2), hh::binary-size(2),
+      mm::binary-size(2), ss::binary-size(2), _::binary>> = s
 
     DateTime.new!(
       Date.new!(String.to_integer(y), String.to_integer(mo), String.to_integer(d)),

@@ -12,6 +12,7 @@ defmodule Clir.Openssl.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Wrapper de OpenSSL para certificados digitales del SAT",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -22,5 +23,13 @@ defmodule Clir.Openssl.MixProject do
 
   defp deps do
     []
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
+    ]
   end
 end

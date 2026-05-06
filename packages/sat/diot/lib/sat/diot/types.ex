@@ -11,7 +11,8 @@ defmodule Sat.Diot.Types do
     proveedor_global: "15"
   }
 
-  @type tipo_operacion :: :profesionales_honorarios | :arrendamiento | :otros_con_iva | :otros_sin_iva
+  @type tipo_operacion ::
+          :profesionales_honorarios | :arrendamiento | :otros_con_iva | :otros_sin_iva
 
   @tipo_operacion_values %{
     profesionales_honorarios: "85",

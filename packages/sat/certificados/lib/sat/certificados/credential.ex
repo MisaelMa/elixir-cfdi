@@ -51,7 +51,8 @@ defmodule Sat.Certificados.Credential do
   Firma datos con la llave privada (SHA-256 por defecto, Base64).
   """
   @spec sign(t(), iodata(), atom()) :: String.t()
-  def sign(%__MODULE__{private_key: pk}, data, algo \\ :sha256), do: PrivateKey.sign(pk, data, algo)
+  def sign(%__MODULE__{private_key: pk}, data, algo \\ :sha256),
+    do: PrivateKey.sign(pk, data, algo)
 
   @doc """
   Verifica una firma Base64 contra `data` usando la llave pública del certificado.

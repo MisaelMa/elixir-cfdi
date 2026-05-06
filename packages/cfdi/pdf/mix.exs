@@ -11,7 +11,8 @@ defmodule Cfdi.Pdf.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Tipos y opciones para generación de PDF de CFDI"
+      description: "Tipos y opciones para generación de PDF de CFDI",
+      package: package()
     ]
   end
 
@@ -21,5 +22,13 @@ defmodule Cfdi.Pdf.MixProject do
 
   defp deps do
     []
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
+    ]
   end
 end

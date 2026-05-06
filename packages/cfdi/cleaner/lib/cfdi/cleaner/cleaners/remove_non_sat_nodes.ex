@@ -56,7 +56,9 @@ defmodule Cfdi.Cleaner.Cleaners.RemoveNonSatNodes do
             end
 
           :incomplete ->
-            IO.iodata_to_binary(Enum.reverse([binary_part(xml, start, len - start), prefix | acc]))
+            IO.iodata_to_binary(
+              Enum.reverse([binary_part(xml, start, len - start), prefix | acc])
+            )
         end
     end
   end

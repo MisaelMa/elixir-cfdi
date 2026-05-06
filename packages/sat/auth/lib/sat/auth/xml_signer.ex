@@ -12,7 +12,10 @@ defmodule Sat.Auth.XmlSigner do
     |> String.replace(~r/<\?xml[^?]*\?>\s*/, "")
     |> String.replace("\r\n", "\n")
     |> String.replace("\r", "\n")
-    |> Regex.replace(~r/<([a-zA-Z][^\s\/>]*)((?:\s+[^>]*)?)(\/?)>/, fn _full, tag, attrs, self_close ->
+    |> Regex.replace(~r/<([a-zA-Z][^\s\/>]*)((?:\s+[^>]*)?)(\/?)>/, fn _full,
+                                                                       tag,
+                                                                       attrs,
+                                                                       self_close ->
       attrs = String.trim(attrs || "")
 
       if attrs == "" do

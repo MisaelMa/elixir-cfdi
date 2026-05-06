@@ -196,7 +196,9 @@ defmodule Clir.Openssl.Pkcs8 do
 
   defp openssl_pkcs8_to_pem(der, password) do
     tmp_in = Path.join(System.tmp_dir!(), "clir_pkcs8_in_#{:erlang.unique_integer([:positive])}")
-    tmp_out = Path.join(System.tmp_dir!(), "clir_pkcs8_out_#{:erlang.unique_integer([:positive])}")
+
+    tmp_out =
+      Path.join(System.tmp_dir!(), "clir_pkcs8_out_#{:erlang.unique_integer([:positive])}")
 
     try do
       :ok = File.write!(tmp_in, der)

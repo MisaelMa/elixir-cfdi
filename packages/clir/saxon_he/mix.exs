@@ -12,6 +12,7 @@ defmodule SaxonHe.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Saxon-HE CLI wrapper for XSLT and XQuery",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -22,5 +23,13 @@ defmodule SaxonHe.MixProject do
 
   defp deps do
     []
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
+    ]
   end
 end

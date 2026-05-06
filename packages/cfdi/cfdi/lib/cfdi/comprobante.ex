@@ -3,38 +3,38 @@ defmodule Cfdi.Comprobante do
 
   use Cfdi.Xml.Element, tag: "cfdi:Comprobante", accepts_children: true
   alias Cfdi.{Concepto, Complemento, Relacionado, Impuestos, Emisor, Receptor, InformacionGlobal}
-  xmlns :cfdi, "http://www.sat.gob.mx/cfd/4"
-  xmlns :xsi, "http://www.w3.org/2001/XMLSchema-instance"
+  xmlns(:cfdi, "http://www.sat.gob.mx/cfd/4")
+  xmlns(:xsi, "http://www.w3.org/2001/XMLSchema-instance")
 
-  attribute :Version, :string
-  attribute :Serie, :string
-  attribute :Folio, :string
-  attribute :Fecha, :string
-  attribute :FormaPago, :string
-  attribute :CondicionesDePago, :string
-  attribute :SubTotal, :string
-  attribute :Descuento, :string
-  attribute :Moneda, :string
-  attribute :TipoCambio, :string
-  attribute :Total, :string
-  attribute :TipoDeComprobante, :string
-  attribute :Exportacion, :string
-  attribute :MetodoPago, :string
-  attribute :LugarExpedicion, :string
-  attribute :Confirmacion, :string
-  attribute :NoCertificado, :string
-  attribute :Certificado, :string
-  attribute :Sello, :string
+  attribute(:Version, :string)
+  attribute(:Serie, :string)
+  attribute(:Folio, :string)
+  attribute(:Fecha, :string)
+  attribute(:FormaPago, :string)
+  attribute(:CondicionesDePago, :string)
+  attribute(:SubTotal, :string)
+  attribute(:Descuento, :string)
+  attribute(:Moneda, :string)
+  attribute(:TipoCambio, :string)
+  attribute(:Total, :string)
+  attribute(:TipoDeComprobante, :string)
+  attribute(:Exportacion, :string)
+  attribute(:MetodoPago, :string)
+  attribute(:LugarExpedicion, :string)
+  attribute(:Confirmacion, :string)
+  attribute(:NoCertificado, :string)
+  attribute(:Certificado, :string)
+  attribute(:Sello, :string)
 
-  child :"cfdi:Emisor", :map
-  child :"cfdi:Receptor", :map
-  child :"cfdi:Impuestos", :map
-  child :"cfdi:InformacionGlobal", :map
-  child :"cfdi:Conceptos", :list
-  child :"cfdi:Complementos", :list
-  child :"cfdi:CfdiRelacionados", :list
-  child :xmlns, :list
-  child :schema_location, :string
+  child(:"cfdi:Emisor", :map)
+  child(:"cfdi:Receptor", :map)
+  child(:"cfdi:Impuestos", :map)
+  child(:"cfdi:InformacionGlobal", :map)
+  child(:"cfdi:Conceptos", :list)
+  child(:"cfdi:Complementos", :list)
+  child(:"cfdi:CfdiRelacionados", :list)
+  child(:xmlns, :list)
+  child(:schema_location, :string)
 
   def xmlns() do
     [
@@ -50,7 +50,6 @@ defmodule Cfdi.Comprobante do
   def add_schema_location(c, schema_location) do
     %{c | schema_location: schema_location}
   end
-
 
   def add_concepto(c, %Concepto{} = concepto) do
     list = Map.get(c, :"cfdi:Conceptos") || []

@@ -7,7 +7,8 @@ defmodule Cfdi.Estado do
 
   @timeout_ms 30_000
 
-  @spec consultar(Types.ConsultaParams.t()) :: {:ok, Types.ConsultaResult.t()} | {:error, String.t()}
+  @spec consultar(Types.ConsultaParams.t()) ::
+          {:ok, Types.ConsultaResult.t()} | {:error, String.t()}
   def consultar(%Types.ConsultaParams{} = params) do
     body = Soap.build_request(params)
 
@@ -26,7 +27,8 @@ defmodule Cfdi.Estado do
         {:error, "El webservice del SAT retornó HTTP #{status}: #{body}"}
 
       {:error, %{reason: :timeout}} ->
-        {:error, "Timeout: el webservice del SAT no respondió en #{div(@timeout_ms, 1000)} segundos"}
+        {:error,
+         "Timeout: el webservice del SAT no respondió en #{div(@timeout_ms, 1000)} segundos"}
 
       {:error, reason} ->
         {:error, "Error de red al consultar el estado del CFDI: #{inspect(reason)}"}

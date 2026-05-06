@@ -33,7 +33,8 @@ defmodule Renapo.Curp.Curp do
       end
 
     errors =
-      if String.length(curp) >= 4 and MapSet.member?(Constants.forbidden_set(), String.slice(curp, 0, 4)) do
+      if String.length(curp) >= 4 and
+           MapSet.member?(Constants.forbidden_set(), String.slice(curp, 0, 4)) do
         [Constants.error_forbidden() | errors]
       else
         errors
@@ -61,7 +62,10 @@ defmodule Renapo.Curp.Curp do
         end)
         |> then(fn e ->
           st = String.slice(curp, 11, 2)
-          if Map.has_key?(Constants.state_map(), st), do: e, else: [Constants.error_bad_state() | e]
+
+          if Map.has_key?(Constants.state_map(), st),
+            do: e,
+            else: [Constants.error_bad_state() | e]
         end)
         |> then(fn e ->
           expected = CheckDigit.check_digit(curp)

@@ -17,7 +17,8 @@ defmodule Cfdi.CleanerTest do
   end
 
   test "clean/1 strips non-SAT xmlns on root pattern" do
-    xml = ~s(<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:ext="http://vendor.example/ns" Version="4.0"/>)
+    xml =
+      ~s(<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:ext="http://vendor.example/ns" Version="4.0"/>)
 
     assert {:ok, out} = Cfdi.Cleaner.clean(xml)
     refute out =~ "vendor.example"

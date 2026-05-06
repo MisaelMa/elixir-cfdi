@@ -12,6 +12,7 @@ defmodule Cfdi.Transform.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Parser XSLT y motor de cadena original para CFDI",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -24,6 +25,14 @@ defmodule Cfdi.Transform.MixProject do
     [
       {:saxy, "~> 1.5"},
       {:saxon_he, path: "../../clir/saxon_he", only: [:dev, :test]}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

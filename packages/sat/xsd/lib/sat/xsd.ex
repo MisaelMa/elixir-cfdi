@@ -5,5 +5,4 @@ defmodule Sat.Xsd do
   Usa `Sat.Xsd.Schema` para cargar resolutores y `Sat.Xsd.Validate` /
   `Sat.Xsd.Comprobante` para validar mapas ya normalizados.
   """
-
 end

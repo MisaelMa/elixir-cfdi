@@ -12,6 +12,7 @@ defmodule CFDI.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Construcción, sellado y timbrado de CFDI",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -32,6 +33,14 @@ defmodule CFDI.MixProject do
       {:xml_builder, "~> 2.1"},
       {:saxy, "~> 1.5"},
       {:jason, "~> 1.4"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

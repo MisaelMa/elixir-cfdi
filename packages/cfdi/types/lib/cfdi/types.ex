@@ -6,5 +6,4 @@ defmodule Cfdi.Types do
   CFDI: structs para nodos XML frecuentes (`Comprobante`, `Emisor`, `Receptor`,
   conceptos, impuestos), configuración y metadatos de complementos.
   """
-
 end

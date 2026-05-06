@@ -145,7 +145,10 @@ defmodule Sat.Catalogos.CodegenTest do
         File.mkdir_p!(overrides_dir)
 
         # Write a minimal estado.exs override so codegen can load it
-        File.write!(Path.join(overrides_dir, "estado.exs"), ~s(%{enum_names: %{}, descriptions: %{}}))
+        File.write!(
+          Path.join(overrides_dir, "estado.exs"),
+          ~s(%{enum_names: %{}, descriptions: %{}})
+        )
 
         estado_spec = %Spec{
           simpletype: "c_Estado",
@@ -171,7 +174,10 @@ defmodule Sat.Catalogos.CodegenTest do
 
         # The first state in the XLSX is AGU = Aguascalientes (col C), NOT MEX (col B)
         assert content =~ ~s("AGU"), "expected AGU code to be present"
-        refute content =~ ~s(label: "MEX"), "label should be the state name, not the country code MEX"
+
+        refute content =~ ~s(label: "MEX"),
+               "label should be the state name, not the country code MEX"
+
         assert content =~ "Aguascalientes", "expected state name Aguascalientes as label"
       end
     end
@@ -342,8 +348,12 @@ defmodule Sat.Catalogos.CodegenTest do
 
         assert content =~ "Consolidación", "expected canonical description for code 609"
         assert content =~ "Hidrocarburos", "expected canonical description for code 628"
-        assert content =~ "De los Regímenes Fiscales Preferentes", "expected canonical description for code 629"
-        assert content =~ "Enajenación de acciones en bolsa de valores", "expected canonical description for code 630"
+
+        assert content =~ "De los Regímenes Fiscales Preferentes",
+               "expected canonical description for code 629"
+
+        assert content =~ "Enajenación de acciones en bolsa de valores",
+               "expected canonical description for code 630"
 
         refute content =~ ~s(label: ""), "no deprecated code should have an empty label"
       end
@@ -376,8 +386,12 @@ defmodule Sat.Catalogos.CodegenTest do
 
   describe "generate/1 — happy path" do
     test "writes one .ex file when catalogs: filtered to c_A" do
-      tmp_dir = System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
-      overrides_dir = System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+      tmp_dir =
+        System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+
+      overrides_dir =
+        System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
       File.mkdir_p!(overrides_dir)
 
@@ -402,8 +416,12 @@ defmodule Sat.Catalogos.CodegenTest do
     end
 
     test "writes two .ex files for both specs" do
-      tmp_dir = System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
-      overrides_dir = System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+      tmp_dir =
+        System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+
+      overrides_dir =
+        System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
       File.mkdir_p!(overrides_dir)
 
@@ -431,7 +449,9 @@ defmodule Sat.Catalogos.CodegenTest do
 
   describe "generate/1 — error cases" do
     test "returns {:error, {:missing_xsd, path}} when XSD file does not exist" do
-      tmp_dir = System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+      tmp_dir =
+        System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
 
       opts = [
@@ -446,7 +466,9 @@ defmodule Sat.Catalogos.CodegenTest do
     end
 
     test "returns {:error, {:missing_xlsx, path}} when XLSX missing and skip_download: true" do
-      tmp_dir = System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+      tmp_dir =
+        System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
 
       opts = [
@@ -463,8 +485,12 @@ defmodule Sat.Catalogos.CodegenTest do
 
   describe "generate/1 — idempotence" do
     test "calling generate/1 twice with the same inputs produces byte-identical files" do
-      tmp_dir = System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
-      overrides_dir = System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+      tmp_dir =
+        System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+
+      overrides_dir =
+        System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
       File.mkdir_p!(overrides_dir)
 
@@ -490,8 +516,12 @@ defmodule Sat.Catalogos.CodegenTest do
 
   describe "generate/1 — catalogs filter" do
     test "specs: option filters which catalogs are generated" do
-      tmp_dir = System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
-      overrides_dir = System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+      tmp_dir =
+        System.tmp_dir!() |> Path.join("codegen_test_#{System.unique_integer([:positive])}")
+
+      overrides_dir =
+        System.tmp_dir!() |> Path.join("overrides_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
       File.mkdir_p!(overrides_dir)
 

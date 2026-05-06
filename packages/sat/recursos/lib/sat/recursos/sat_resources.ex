@@ -200,7 +200,8 @@ defmodule Sat.Recursos.SatResources do
          includes = extract_xsl_includes(xslt_clean),
          {:ok, comp_paths} <- download_includes(includes, comp_dir),
          local_xslt = rewrite_includes(xslt_clean, includes),
-         {:ok, _} <- write_file(Path.join(resources.output_dir, "cadenaoriginal.xslt"), local_xslt) do
+         {:ok, _} <-
+           write_file(Path.join(resources.output_dir, "cadenaoriginal.xslt"), local_xslt) do
       downloaded_names = comp_paths |> Enum.map(&Path.basename/1) |> MapSet.new()
       {unused, added} = diff_complementos(comp_dir, downloaded_names)
 
@@ -291,7 +292,7 @@ defmodule Sat.Recursos.SatResources do
 
     Regex.scan(re, xslt)
     |> Enum.map(fn [_w, href] -> href end)
-    |> Enum.filter(&String.starts_with?(&1, "http://") or String.starts_with?(&1, "https://"))
+    |> Enum.filter(&(String.starts_with?(&1, "http://") or String.starts_with?(&1, "https://")))
   end
 
   defp download_includes(urls, comp_dir) do

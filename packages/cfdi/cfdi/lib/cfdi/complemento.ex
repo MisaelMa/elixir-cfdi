@@ -3,7 +3,7 @@ defmodule Cfdi.Complemento do
 
   use Cfdi.Xml.Element, tag: "cfdi:Complemento", accepts_children: true
 
-  child :children, :list
+  child(:children, :list)
 
   def to_element(nil), do: nil
 

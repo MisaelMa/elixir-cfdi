@@ -29,7 +29,9 @@ defmodule Cfdi.Estado.Soap do
   @spec build_request(ConsultaParams.t()) :: String.t()
   def build_request(%ConsultaParams{} = params) do
     total_formateado = format_total(params.total)
-    expresion = "?re=#{params.rfc_emisor}&rr=#{params.rfc_receptor}&tt=#{total_formateado}&id=#{params.uuid}"
+
+    expresion =
+      "?re=#{params.rfc_emisor}&rr=#{params.rfc_receptor}&tt=#{total_formateado}&id=#{params.uuid}"
 
     """
     <?xml version="1.0" encoding="utf-8"?>
@@ -68,7 +70,8 @@ defmodule Cfdi.Estado.Soap do
   end
 
   defp extract_tag(xml, local_name) do
-    pattern = ~r/<(?:[a-zA-Z0-9_]+:)?#{local_name}[^>]*>([\s\S]*?)<\/(?:[a-zA-Z0-9_]+:)?#{local_name}>/i
+    pattern =
+      ~r/<(?:[a-zA-Z0-9_]+:)?#{local_name}[^>]*>([\s\S]*?)<\/(?:[a-zA-Z0-9_]+:)?#{local_name}>/i
 
     case Regex.run(pattern, xml) do
       [_, content] -> String.trim(content)

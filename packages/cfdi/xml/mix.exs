@@ -12,6 +12,7 @@ defmodule Cfdi.Xml.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Conversión de CFDI XML a estructura tipo JSON",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -24,6 +25,14 @@ defmodule Cfdi.Xml.MixProject do
     [
       {:saxy, "~> 1.5"},
       {:xml_builder, "~> 2.1"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

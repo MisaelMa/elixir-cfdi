@@ -11,9 +11,9 @@ defmodule Cfdi.Relacionado do
 
   alias Cfdi.Relacionado.CfdiRelacionado
 
-  attribute :TipoRelacion, :string
+  attribute(:TipoRelacion, :string)
 
-  child :"cfdi:CfdiRelacionado", :list
+  child(:"cfdi:CfdiRelacionado", :list)
 
   @doc """
   Añade un UUID al grupo.

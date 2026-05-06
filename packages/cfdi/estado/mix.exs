@@ -11,7 +11,8 @@ defmodule Cfdi.Estado.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Consulta de estado de CFDI en el webservice del SAT"
+      description: "Consulta de estado de CFDI en el webservice del SAT",
+      package: package()
     ]
   end
 
@@ -22,6 +23,14 @@ defmodule Cfdi.Estado.MixProject do
   defp deps do
     [
       {:req, "~> 0.5"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

@@ -38,7 +38,8 @@ defmodule Cfdi.Descarga.Soap.Signer do
     sign_soap_body(body_xml, credential, "_0")
   end
 
-  @spec sign_soap_body(String.t(), Sat.Certificados.Credential.t(), String.t()) :: SoapSignatureComponents.t()
+  @spec sign_soap_body(String.t(), Sat.Certificados.Credential.t(), String.t()) ::
+          SoapSignatureComponents.t()
   def sign_soap_body(body_xml, %Sat.Certificados.Credential{} = credential, body_id) do
     canon = canonicalize(body_xml)
     body_digest = digest_sha256(canon)

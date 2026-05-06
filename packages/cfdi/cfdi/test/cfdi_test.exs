@@ -30,6 +30,7 @@ defmodule CFDITest do
     IO.puts(CFDI.to_xml(cfdi, pretty: true))
     IO.puts("\n=== to_xml compact ===")
     IO.puts(CFDI.to_xml(cfdi))
+
     assert CFDI.to_map(cfdi) == %{
              "cfdi:Comprobante" => %{
                "cfdi:Emisor" => %{

@@ -20,7 +20,7 @@ defmodule Cfdi.Utils.NumeroALetras do
   @spec convert(number(), currency()) :: String.t()
   def convert(num, currency \\ @default_currency) do
     enteros = trunc(num)
-    centavos = round((num * 100 - enteros * 100)) |> abs()
+    centavos = round(num * 100 - enteros * 100) |> abs()
 
     letras_centavos =
       cond do
@@ -83,15 +83,32 @@ defmodule Cfdi.Utils.NumeroALetras do
           _ -> "VEINTI" <> unidades(unidad)
         end
 
-      3 -> decenas_y("TREINTA", unidad)
-      4 -> decenas_y("CUARENTA", unidad)
-      5 -> decenas_y("CINCUENTA", unidad)
-      6 -> decenas_y("SESENTA", unidad)
-      7 -> decenas_y("SETENTA", unidad)
-      8 -> decenas_y("OCHENTA", unidad)
-      9 -> decenas_y("NOVENTA", unidad)
-      0 -> unidades(unidad)
-      _ -> ""
+      3 ->
+        decenas_y("TREINTA", unidad)
+
+      4 ->
+        decenas_y("CUARENTA", unidad)
+
+      5 ->
+        decenas_y("CINCUENTA", unidad)
+
+      6 ->
+        decenas_y("SESENTA", unidad)
+
+      7 ->
+        decenas_y("SETENTA", unidad)
+
+      8 ->
+        decenas_y("OCHENTA", unidad)
+
+      9 ->
+        decenas_y("NOVENTA", unidad)
+
+      0 ->
+        unidades(unidad)
+
+      _ ->
+        ""
     end
   end
 

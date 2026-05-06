@@ -17,8 +17,11 @@ defmodule Cfdi.RelacionadoTest do
       |> Relacionado.add_relation("123e4567-e89b-12d3-a456-426614174001")
 
     uuids = Map.get(r, :"cfdi:CfdiRelacionado")
-    assert [%CfdiRelacionado{UUID: "123e4567-e89b-12d3-a456-426614174000"},
-            %CfdiRelacionado{UUID: "123e4567-e89b-12d3-a456-426614174001"}] = uuids
+
+    assert [
+             %CfdiRelacionado{UUID: "123e4567-e89b-12d3-a456-426614174000"},
+             %CfdiRelacionado{UUID: "123e4567-e89b-12d3-a456-426614174001"}
+           ] = uuids
   end
 
   test "to_element/1 genera <cfdi:CfdiRelacionados> con hijos <cfdi:CfdiRelacionado>" do

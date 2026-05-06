@@ -3,5 +3,5 @@ defmodule Cfdi.Concepto.InformacionAduanera do
 
   use Cfdi.Xml.Element, tag: "cfdi:InformacionAduanera"
 
-  attribute :NumeroPedimento, :string
+  attribute(:NumeroPedimento, :string)
 end

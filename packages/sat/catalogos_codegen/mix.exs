@@ -12,6 +12,7 @@ defmodule Sat.Catalogos.Codegen.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Codegen para sat_catalogos — genera módulos desde catCFDI.xsd y catCFDI.xlsx",
+      package: package(),
       releaser: [publish: false]
     ]
   end
@@ -25,6 +26,14 @@ defmodule Sat.Catalogos.Codegen.MixProject do
       {:saxy, "~> 1.6"},
       {:sat_recursos, path: "../recursos", only: [:dev, :test]},
       {:plug, "~> 1.0", only: :test}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

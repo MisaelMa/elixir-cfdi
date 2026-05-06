@@ -11,7 +11,7 @@ defmodule Cfdi.Concepto.Complemento do
 
   use Cfdi.Xml.Element, tag: "cfdi:ComplementoConcepto", accepts_children: true
 
-  child :complementos, :list
+  child(:complementos, :list)
 
   @doc """
   Añade un complemento (struct que implementa `Cfdi.Complementos.Complemento`).

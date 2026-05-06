@@ -12,7 +12,8 @@ defmodule Sat.Captcha.Solvers.Manual do
     {:error, "ManualCaptchaSolver requires a prompt_fn - use solve/2 instead"}
   end
 
-  @spec solve(Challenge.t(), (Challenge.t() -> String.t())) :: {:ok, Result.t()} | {:error, String.t()}
+  @spec solve(Challenge.t(), (Challenge.t() -> String.t())) ::
+          {:ok, Result.t()} | {:error, String.t()}
   def solve(%Challenge{} = challenge, prompt_fn) when is_function(prompt_fn, 1) do
     case prompt_fn.(challenge) do
       text when is_binary(text) and text != "" ->

@@ -5,5 +5,5 @@ defmodule Cfdi.Relacionado.CfdiRelacionado do
 
   use Cfdi.Xml.Element, tag: "cfdi:CfdiRelacionado"
 
-  attribute :UUID, :string
+  attribute(:UUID, :string)
 end

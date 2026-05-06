@@ -37,5 +37,4 @@ defmodule Cfdi.Complementos do
   - `Cfdi.Complementos.VehiculoUsado` — Vehículo usado
   - `Cfdi.Complementos.VentaVehiculos` — Venta de vehículos
   """
-
 end

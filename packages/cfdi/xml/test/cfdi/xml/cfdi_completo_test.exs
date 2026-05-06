@@ -80,7 +80,9 @@ defmodule Cfdi.Xml.CfdiCompletoTest do
                "UsoCFDI" => "G03"
              },
              "Conceptos" => [
-               @concepto_attrs |> Map.merge(@concepto_impuestos) |> Map.merge(@concepto_complemento)
+               @concepto_attrs
+               |> Map.merge(@concepto_impuestos)
+               |> Map.merge(@concepto_complemento)
              ],
              "Impuestos" => @top_impuestos,
              "Complemento" => @complemento
@@ -233,11 +235,13 @@ defmodule Cfdi.Xml.CfdiCompletoTest do
 
     [concepto] = cfdi.comprobante[:conceptos]
     assert concepto[:claveprodserv] == "86121500"
+
     assert concepto[:impuestos][:traslados] == [
              %{base: "1", impuesto: "002", tipofactor: "Exento"}
            ]
 
     assert cfdi.comprobante[:impuestos][:totalimpuestostrasladados] == "0.16"
+
     assert cfdi.comprobante[:complemento][:timbrefiscaldigital][:uuid] ==
              "5e2d6aff-2dd7-43d1-83d3-14c1aca396d9"
   end

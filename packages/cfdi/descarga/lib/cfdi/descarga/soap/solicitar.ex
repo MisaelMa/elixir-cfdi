@@ -3,7 +3,8 @@ defmodule Cfdi.Descarga.Soap.Solicitar do
 
   alias Cfdi.Descarga.Types.SolicitudParams
 
-  @spec build_solicitar_request(SolicitudParams.t(), String.t(), String.t(), String.t()) :: String.t()
+  @spec build_solicitar_request(SolicitudParams.t(), String.t(), String.t(), String.t()) ::
+          String.t()
   def build_solicitar_request(%SolicitudParams{} = params, token, cert, signature_value) do
     filtro_attr =
       if params.tipo_descarga == "RfcEmisor" do
@@ -83,7 +84,8 @@ defmodule Cfdi.Descarga.Soap.Solicitar do
 </s:Envelope>)
   end
 
-  @spec parse_solicitar_response(String.t()) :: {:ok, Cfdi.Descarga.Types.SolicitudResult.t()} | {:error, String.t()}
+  @spec parse_solicitar_response(String.t()) ::
+          {:ok, Cfdi.Descarga.Types.SolicitudResult.t()} | {:error, String.t()}
   def parse_solicitar_response(xml) when is_binary(xml) do
     cond do
       String.contains?(xml, "<faultcode>") or String.contains?(xml, ":Fault>") ->

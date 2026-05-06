@@ -12,7 +12,9 @@ defmodule Cfdi.SchemaTest do
     File.write!(path, @sample_xsd)
 
     loader = Cfdi.Schema.new(root: dir)
-    assert {:ok, {"xs:schema", _attrs, _kids}} = Cfdi.Schema.load(loader, "sample_cfdi_schema_test.xsd")
+
+    assert {:ok, {"xs:schema", _attrs, _kids}} =
+             Cfdi.Schema.load(loader, "sample_cfdi_schema_test.xsd")
   end
 
   test "load/2 error si falta archivo" do

@@ -5,15 +5,15 @@ defmodule Cfdi.Concepto.Parte do
 
   alias Cfdi.Concepto.InformacionAduanera
 
-  attribute :ClaveProdServ, :string
-  attribute :NoIdentificacion, :string
-  attribute :Cantidad, :string
-  attribute :Unidad, :string
-  attribute :Descripcion, :string
-  attribute :ValorUnitario, :string
-  attribute :Importe, :string
+  attribute(:ClaveProdServ, :string)
+  attribute(:NoIdentificacion, :string)
+  attribute(:Cantidad, :string)
+  attribute(:Unidad, :string)
+  attribute(:Descripcion, :string)
+  attribute(:ValorUnitario, :string)
+  attribute(:Importe, :string)
 
-  child :informacion_aduanera, :list
+  child(:informacion_aduanera, :list)
 
   @doc """
   Añade un `cfdi:InformacionAduanera` a la parte.
@@ -23,7 +23,8 @@ defmodule Cfdi.Concepto.Parte do
     %{p | informacion_aduanera: list}
   end
 
-  def add_informacion_aduanera(p, pedimento) when is_struct(p, __MODULE__) and is_binary(pedimento) do
+  def add_informacion_aduanera(p, pedimento)
+      when is_struct(p, __MODULE__) and is_binary(pedimento) do
     add_informacion_aduanera(p, %InformacionAduanera{NumeroPedimento: pedimento})
   end
 

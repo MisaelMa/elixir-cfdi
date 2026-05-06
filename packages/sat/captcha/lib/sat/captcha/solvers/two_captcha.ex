@@ -18,6 +18,7 @@ defmodule Sat.Captcha.Solvers.TwoCaptcha do
   @impl true
   def solve(%Challenge{} = challenge) do
     solver = get_solver()
+
     with {:ok, task_id} <- submit_task(solver, challenge) do
       wait_for_result(solver, task_id)
     end
@@ -90,7 +91,8 @@ defmodule Sat.Captcha.Solvers.TwoCaptcha do
     elapsed = System.monotonic_time(:millisecond) - start
 
     if elapsed >= solver.timeout do
-      {:error, "Timeout: 2captcha no resolvió el captcha en #{div(solver.timeout, 1000)} segundos"}
+      {:error,
+       "Timeout: 2captcha no resolvió el captcha en #{div(solver.timeout, 1000)} segundos"}
     else
       Process.sleep(@poll_interval_ms)
 

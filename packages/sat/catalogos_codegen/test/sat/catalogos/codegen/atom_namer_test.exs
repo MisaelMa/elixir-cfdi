@@ -49,6 +49,7 @@ defmodule Sat.Catalogos.Codegen.AtomNamerTest do
 
     for input <- inputs do
       result = AtomNamer.normalize(input)
+
       assert AtomNamer.normalize(to_string(result)) == result,
              "idempotence failed for #{inspect(input)}: got #{inspect(result)}"
     end

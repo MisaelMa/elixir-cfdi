@@ -10,9 +10,11 @@ defmodule Sat.Auth.SatAuth do
   @auth_url "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/Autenticacion/Autenticacion.svc"
   @soap_action "http://DescargaMasivaTerceros.gob.mx/IAutenticacion/Autentica"
 
-  @spec authenticate(Sat.Auth.Types.credential_like()) :: {:ok, SatToken.t()} | {:error, String.t()}
+  @spec authenticate(Sat.Auth.Types.credential_like()) ::
+          {:ok, SatToken.t()} | {:error, String.t()}
   def authenticate(%Sat.Certificados.Credential{} = credential) do
-    %{fragment: ts_frag, created: created_s, expires: expires_s} = TokenBuilder.build_timestamp_fragment()
+    %{fragment: ts_frag, created: created_s, expires: expires_s} =
+      TokenBuilder.build_timestamp_fragment()
 
     digest =
       ts_frag
@@ -73,7 +75,10 @@ defmodule Sat.Auth.SatAuth do
         case Regex.run(~r/<AutenticaResult>([^<]+)<\/AutenticaResult>/i, soap) do
           [_, value] ->
             v = String.trim(value)
-            if v != "", do: {:ok, %SatToken{value: v, created: created, expires: expires}}, else: {:error, "empty token"}
+
+            if v != "",
+              do: {:ok, %SatToken{value: v, created: created, expires: expires}},
+              else: {:error, "empty token"}
 
           _ ->
             alt(soap, created, expires)
@@ -91,7 +96,10 @@ defmodule Sat.Auth.SatAuth do
          ) do
       [_, value] ->
         v = String.trim(value)
-        if v != "", do: {:ok, %SatToken{value: v, created: created, expires: expires}}, else: {:error, "empty token"}
+
+        if v != "",
+          do: {:ok, %SatToken{value: v, created: created, expires: expires}},
+          else: {:error, "empty token"}
 
       _ ->
         {:error, "could not parse AutenticaResult: #{truncate(soap)}"}

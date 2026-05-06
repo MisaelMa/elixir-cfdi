@@ -57,10 +57,11 @@ defmodule Sat.Catalogos.Codegen.Parsers.XsdTest do
 
     test "extracts multiple simpleTypes" do
       assert {:ok, result} = Xsd.parse_string(@valid_xsd_multiple)
+
       assert result == %{
-        "c_FormaPago" => ["01", "02"],
-        "c_MetodoPago" => ["PUE", "PPD", "PUE2"]
-      }
+               "c_FormaPago" => ["01", "02"],
+               "c_MetodoPago" => ["PUE", "PPD", "PUE2"]
+             }
     end
 
     test "returns empty map when no simpleTypes present" do
@@ -92,7 +93,8 @@ defmodule Sat.Catalogos.Codegen.Parsers.XsdTest do
     end
 
     test "parses a real XSD file" do
-      path = "/Users/amir/Documents/proyectos/recreando/sat/elixir-cfdi/packages/files/4.0/catCFDI.xsd"
+      path =
+        "/Users/amir/Documents/proyectos/recreando/sat/elixir-cfdi/packages/files/4.0/catCFDI.xsd"
 
       if File.exists?(path) do
         assert {:ok, result} = Xsd.parse(path)

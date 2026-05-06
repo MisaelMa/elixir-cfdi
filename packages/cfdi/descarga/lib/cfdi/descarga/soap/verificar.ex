@@ -3,7 +3,8 @@ defmodule Cfdi.Descarga.Soap.Verificar do
 
   alias Cfdi.Descarga.Types.{EstadoSolicitud, VerificacionResult}
 
-  @spec build_verificar_request(String.t(), String.t(), String.t(), String.t(), String.t()) :: String.t()
+  @spec build_verificar_request(String.t(), String.t(), String.t(), String.t(), String.t()) ::
+          String.t()
   def build_verificar_request(id_solicitud, rfc, token, cert, signature_value) do
     ~s(<?xml version="1.0" encoding="utf-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
@@ -66,7 +67,8 @@ defmodule Cfdi.Descarga.Soap.Verificar do
 </s:Envelope>)
   end
 
-  @spec parse_verificar_response(String.t()) :: {:ok, VerificacionResult.t()} | {:error, String.t()}
+  @spec parse_verificar_response(String.t()) ::
+          {:ok, VerificacionResult.t()} | {:error, String.t()}
   def parse_verificar_response(xml) when is_binary(xml) do
     cond do
       String.contains?(xml, "<faultcode>") or String.contains?(xml, ":Fault>") ->
@@ -90,10 +92,12 @@ defmodule Cfdi.Descarga.Soap.Verificar do
           if estado_num in 1..6, do: estado_num, else: EstadoSolicitud.error()
 
         num_raw = extract_attr(ctx, "NumeroCFDIs")
-        numero = case Integer.parse(num_raw || "") do
-          {n, _} -> n
-          :error -> 0
-        end
+
+        numero =
+          case Integer.parse(num_raw || "") do
+            {n, _} -> n
+            :error -> 0
+          end
 
         {:ok,
          %VerificacionResult{

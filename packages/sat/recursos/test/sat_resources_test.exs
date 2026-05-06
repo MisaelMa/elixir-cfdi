@@ -183,7 +183,11 @@ defmodule Sat.Recursos.SatResourcesTest do
       System.put_env("SAT_XLSX_URL", "https://envstub.example.com/ignored.xlsx")
 
       resources =
-        SatResources.new(version: "4.0", output_dir: output_dir, xlsx_url: "https://opt.example.com/chosen.xlsx")
+        SatResources.new(
+          version: "4.0",
+          output_dir: output_dir,
+          xlsx_url: "https://opt.example.com/chosen.xlsx"
+        )
 
       assert resources.xlsx_url == "https://opt.example.com/chosen.xlsx"
     end

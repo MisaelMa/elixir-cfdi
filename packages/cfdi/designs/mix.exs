@@ -11,7 +11,8 @@ defmodule Cfdi.Designs.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "PDF layouts for CFDI (A117, etc.)"
+      description: "PDF layouts for CFDI (A117, etc.)",
+      package: package()
     ]
   end
 
@@ -25,6 +26,14 @@ defmodule Cfdi.Designs.MixProject do
       {:cfdi_utils, path: "../utils"},
       {:cfdi_types, path: "../types"},
       {:cfdi_complementos, path: "../complementos"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

@@ -96,8 +96,11 @@ defmodule Sat.Certificados.Ocsp do
   @spec new!(String.t(), Certificate.t(), Certificate.t(), Certificate.t()) :: t()
   def new!(url, issuer, subject, ocsp_cert) do
     case new(url, issuer, subject, ocsp_cert) do
-      {:ok, ocsp} -> ocsp
-      {:error, :invalid_url} -> raise ArgumentError, "Revisar la url del servicio OCSP, el formato no es de URL"
+      {:ok, ocsp} ->
+        ocsp
+
+      {:error, :invalid_url} ->
+        raise ArgumentError, "Revisar la url del servicio OCSP, el formato no es de URL"
     end
   end
 
@@ -352,7 +355,11 @@ defmodule Sat.Certificados.Ocsp do
     issuer_name_der = encode_issuer_name(subject)
     issuer_name_hash = :crypto.hash(:sha, issuer_name_der)
     issuer_key_hash = :crypto.hash(:sha, extract_issuer_public_key_bits(issuer))
-    serial_int = :binary.decode_unsigned(:binary.list_to_bin(:binary.bin_to_list(decode_hex(Certificate.serial_number(subject)))))
+
+    serial_int =
+      :binary.decode_unsigned(
+        :binary.list_to_bin(:binary.bin_to_list(decode_hex(Certificate.serial_number(subject))))
+      )
 
     cert_id =
       seq([
@@ -369,7 +376,8 @@ defmodule Sat.Certificados.Ocsp do
     request_list = seq([request])
 
     nonce_ext =
-      explicit_tag(2,
+      explicit_tag(
+        2,
         seq([
           seq([
             oid([1, 3, 6, 1, 5, 5, 7, 48, 1, 2]),
@@ -504,7 +512,9 @@ defmodule Sat.Certificados.Ocsp do
 
     len_enc =
       cond do
-        len < 0x80 -> <<len>>
+        len < 0x80 ->
+          <<len>>
+
         true ->
           enc = :binary.encode_unsigned(len)
           <<0x80 + byte_size(enc), enc::binary>>

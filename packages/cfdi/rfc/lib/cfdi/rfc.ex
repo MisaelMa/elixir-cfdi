@@ -49,7 +49,11 @@ defmodule Cfdi.Rfc do
     month = String.slice(date_str, 2, 2)
     day = String.slice(date_str, 4, 2)
 
-    case Date.new(String.to_integer("20" <> year), String.to_integer(month), String.to_integer(day)) do
+    case Date.new(
+           String.to_integer("20" <> year),
+           String.to_integer(month),
+           String.to_integer(day)
+         ) do
       {:ok, _} -> true
       _ -> false
     end

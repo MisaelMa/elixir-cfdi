@@ -29,7 +29,8 @@ defmodule Sat.Certificados.MapKeys do
 
   defp key_fn(other),
     do:
-      raise(ArgumentError,
+      raise(
+        ArgumentError,
         "opción :keys inválida: #{inspect(other)}; usar :atom, :string o :existing"
       )
 

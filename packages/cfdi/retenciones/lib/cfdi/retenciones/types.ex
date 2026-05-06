@@ -9,7 +9,8 @@ defmodule Cfdi.Retenciones.Types do
   def namespace_v1, do: @retencion_pago_namespace_v1
   def namespace_v2, do: @retencion_pago_namespace_v2
 
-  @type tipo_retencion :: :arrendamiento | :dividendos | :intereses | :fideicomiso | :enajenacion_acciones | :otro
+  @type tipo_retencion ::
+          :arrendamiento | :dividendos | :intereses | :fideicomiso | :enajenacion_acciones | :otro
 
   @tipo_retencion_values %{
     arrendamiento: "14",
@@ -25,13 +26,24 @@ defmodule Cfdi.Retenciones.Types do
   defmodule EmisorRetencion do
     @moduledoc false
     defstruct [:rfc, :nom_den_raz_soc_e, :regimen_fiscal_e, :curp_e]
-    @type t :: %__MODULE__{rfc: String.t(), nom_den_raz_soc_e: String.t() | nil, regimen_fiscal_e: String.t(), curp_e: String.t() | nil}
+
+    @type t :: %__MODULE__{
+            rfc: String.t(),
+            nom_den_raz_soc_e: String.t() | nil,
+            regimen_fiscal_e: String.t(),
+            curp_e: String.t() | nil
+          }
   end
 
   defmodule ReceptorNacional do
     @moduledoc false
     defstruct [:rfc_recep, :nom_den_raz_soc_r, :curp_r]
-    @type t :: %__MODULE__{rfc_recep: String.t(), nom_den_raz_soc_r: String.t() | nil, curp_r: String.t() | nil}
+
+    @type t :: %__MODULE__{
+            rfc_recep: String.t(),
+            nom_den_raz_soc_r: String.t() | nil,
+            curp_r: String.t() | nil
+          }
   end
 
   defmodule ReceptorExtranjero do
@@ -43,7 +55,12 @@ defmodule Cfdi.Retenciones.Types do
   defmodule ReceptorRetencion do
     @moduledoc false
     defstruct [:nacionalidad_r, :nacional, :extranjero]
-    @type t :: %__MODULE__{nacionalidad_r: String.t(), nacional: ReceptorNacional.t() | nil, extranjero: ReceptorExtranjero.t() | nil}
+
+    @type t :: %__MODULE__{
+            nacionalidad_r: String.t(),
+            nacional: ReceptorNacional.t() | nil,
+            extranjero: ReceptorExtranjero.t() | nil
+          }
   end
 
   defmodule PeriodoRetencion do
@@ -55,7 +72,13 @@ defmodule Cfdi.Retenciones.Types do
   defmodule TotalesRetencion do
     @moduledoc false
     defstruct [:monto_tot_operacion, :monto_tot_grav, :monto_tot_exent, :monto_tot_ret]
-    @type t :: %__MODULE__{monto_tot_operacion: String.t(), monto_tot_grav: String.t(), monto_tot_exent: String.t(), monto_tot_ret: String.t()}
+
+    @type t :: %__MODULE__{
+            monto_tot_operacion: String.t(),
+            monto_tot_grav: String.t(),
+            monto_tot_exent: String.t(),
+            monto_tot_ret: String.t()
+          }
   end
 
   defmodule ComplementoRetencion do

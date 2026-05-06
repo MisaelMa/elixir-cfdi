@@ -37,7 +37,6 @@ defmodule CFDI do
 
   def certificar(%__MODULE__{}, _), do: {:error, :credential_must_be_credential_struct}
 
-
   @doc """
   Asocia la ruta del XSLT que generará la cadena original.
 
@@ -92,8 +91,7 @@ defmodule CFDI do
     end
   end
 
-
-   @doc """
+  @doc """
   Firma la cadena original y escribe el atributo `Sello` usando una credencial
   ya cargada en `config[:credential]` y la cadena en `config[:cadena]`.
 
@@ -116,7 +114,6 @@ defmodule CFDI do
         {:ok, %{c | comprobante: struct(comp, %{Sello: sello})}}
     end
   end
-
 
   @doc """
   Genera la cadena original, la firma con la llave privada del archivo dado,
@@ -144,7 +141,6 @@ defmodule CFDI do
   end
 
   def sellar(%__MODULE__{} = c, %Sat.Certificados.Credential{} = credential) do
-
     with {:ok, cadena} <- generar_cadena_original(c) do
       sello = Credential.sign(credential, cadena)
       updated_comp = Comprobante.set_sello(c.comprobante, sello)
@@ -248,7 +244,8 @@ defmodule CFDI do
 
   defp base_key_fn(other),
     do:
-      raise(ArgumentError,
+      raise(
+        ArgumentError,
         "opción :keys inválida: #{inspect(other)}; usar :string, :atom o :existing"
       )
 
@@ -257,7 +254,8 @@ defmodule CFDI do
 
   defp case_fn(other),
     do:
-      raise(ArgumentError,
+      raise(
+        ArgumentError,
         "opción :case inválida: #{inspect(other)}; usar :as_is o :camel"
       )
 
@@ -401,5 +399,4 @@ defmodule CFDI do
         end)
     end
   end
-
 end

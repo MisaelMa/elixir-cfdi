@@ -5,6 +5,7 @@ defmodule Cfdi.Validador do
 
   alias Cfdi.Validador.Parser
   alias Cfdi.Validador.Types.ValidationResult
+
   alias Cfdi.Validador.Rules.{
     Conceptos,
     Emisor,

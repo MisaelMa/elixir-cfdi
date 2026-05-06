@@ -110,7 +110,9 @@ defmodule SaxonHe.TransformTest do
   end
 
   defp touch_temp(name) do
-    path = Path.join(System.tmp_dir!(), "saxon_he_test_#{System.unique_integer([:positive])}_#{name}")
+    path =
+      Path.join(System.tmp_dir!(), "saxon_he_test_#{System.unique_integer([:positive])}_#{name}")
+
     File.write!(path, "")
     on_exit(fn -> File.rm(path) end)
     path

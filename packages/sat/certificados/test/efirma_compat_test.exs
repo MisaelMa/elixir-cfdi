@@ -69,6 +69,7 @@ defmodule Cfdi.EfirmaCompatTest do
   describe "Certificate.serial_number" do
     test "goodCertificate.cer tiene el serial esperado" do
       {:ok, cert} = Certificate.from_file(f("goodCertificate.cer"))
+
       assert Certificate.serial_number(cert) ==
                "3330303031303030303030353030303033323832"
     end
@@ -131,9 +132,7 @@ defmodule Cfdi.EfirmaCompatTest do
   describe "PrivateKey strict mode" do
     test "acepta llave PKCS#8 cifrada del SAT" do
       assert {:ok, %PrivateKey{}} =
-               PrivateKey.from_file(f("goodPrivateKeyEncrypt.key"), @key_password,
-                 strict: true
-               )
+               PrivateKey.from_file(f("goodPrivateKeyEncrypt.key"), @key_password, strict: true)
     end
 
     test "rechaza llave desencriptada en modo strict" do

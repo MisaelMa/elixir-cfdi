@@ -11,7 +11,8 @@ defmodule Sat.Recursos.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Descarga de XSD/XSLT oficiales del SAT"
+      description: "Descarga de XSD/XSLT oficiales del SAT",
+      package: package()
     ]
   end
 
@@ -23,6 +24,14 @@ defmodule Sat.Recursos.MixProject do
     [
       {:req, "~> 0.5"},
       {:plug, "~> 1.0", only: :test}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

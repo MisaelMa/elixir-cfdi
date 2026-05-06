@@ -1,7 +1,8 @@
 defmodule Cfdi.Descarga.Soap.Descargar do
   @moduledoc false
 
-  @spec build_descargar_request(String.t(), String.t(), String.t(), String.t(), String.t()) :: String.t()
+  @spec build_descargar_request(String.t(), String.t(), String.t(), String.t(), String.t()) ::
+          String.t()
   def build_descargar_request(id_paquete, rfc, token, cert, signature_value) do
     ~s(<?xml version="1.0" encoding="utf-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"

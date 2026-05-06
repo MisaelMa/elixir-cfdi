@@ -11,7 +11,8 @@ defmodule Sat.Auth.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "FIEL-based SOAP authentication for SAT Descarga Masiva"
+      description: "FIEL-based SOAP authentication for SAT Descarga Masiva",
+      package: package()
     ]
   end
 
@@ -23,6 +24,14 @@ defmodule Sat.Auth.MixProject do
     [
       {:sat_certificados, path: "../certificados"},
       {:req, "~> 0.5"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

@@ -12,6 +12,7 @@ defmodule Sat.Xsd.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Validación CFDI basada en esquemas JSON",
+      package: package(),
       releaser: [publish: true]
     ]
   end
@@ -24,6 +25,14 @@ defmodule Sat.Xsd.MixProject do
     [
       {:ex_json_schema, "~> 0.10"},
       {:jason, "~> 1.0"}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
+      maintainers: ["Misael Madrigal"]
     ]
   end
 end

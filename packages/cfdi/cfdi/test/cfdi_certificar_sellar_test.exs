@@ -64,7 +64,6 @@ defmodule CFDI.CertificarSellarTest do
   end
 
   describe "sellar/1" do
-
     test "produce un Sello base64 verificable contra la cadena original" do
       cred = load_credential!()
 
@@ -77,17 +76,24 @@ defmodule CFDI.CertificarSellarTest do
       assert {:ok, sealed} = CFDI.sellar(c, cred) |> IO.inspect(label: "CFDI después de sellar")
       IO.inspect(sealed.comprobante, label: "Comprobante sellado")
 
-      #XML
-      IO.puts(CFDI.to_xml(sealed, [pretty: true]))
+      # XML
+      IO.puts(CFDI.to_xml(sealed, pretty: true))
       IO.inspect(CFDI.to_map(sealed, ns: false), label: "Proyección a mapa sin namespaces")
       IO.puts(CFDI.to_json(sealed, ns: false, pretty: true))
-      IO.inspect(CFDI.to_map(sealed, ns: false, keys: :atom), label: "Proyección a mapa con namespaces")
-      IO.inspect(CFDI.to_map(sealed, ns: false, keys: :atom, case: :camel), label: "Proyección a mapa con namespaces")
-      #sello = Map.fetch!(sealed.comprobante, :Sello)
 
-      #assert is_binary(sello)
-      #assert {:ok, _decoded} = Base.decode64(sello)
-      ##assert Credential.verify(cred, cadena, sello)
+      IO.inspect(CFDI.to_map(sealed, ns: false, keys: :atom),
+        label: "Proyección a mapa con namespaces"
+      )
+
+      IO.inspect(CFDI.to_map(sealed, ns: false, keys: :atom, case: :camel),
+        label: "Proyección a mapa con namespaces"
+      )
+
+      # sello = Map.fetch!(sealed.comprobante, :Sello)
+
+      # assert is_binary(sello)
+      # assert {:ok, _decoded} = Base.decode64(sello)
+      ## assert Credential.verify(cred, cadena, sello)
     end
 
     test "retorna :missing_cadena cuando config no contiene la cadena" do
