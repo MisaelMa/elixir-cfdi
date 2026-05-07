@@ -300,6 +300,53 @@ defmodule Cfdi.CsdTest do
     end
   end
 
+  describe "Credential.from_binary" do
+    test "crea una credencial desde bytes DER (.cer DER + .key DER cifrado)" do
+      cer_bin = File.read!(@csd_cer)
+      key_bin = File.read!(@csd_key)
+
+      assert {:ok, %Credential{} = cred} =
+               Credential.from_binary(cer_bin, key_bin, @key_password)
+
+      assert Credential.rfc(cred) == @rfc_esperado
+      assert Credential.key_matches_certificate?(cred)
+    end
+
+    test "crea una credencial desde bytes PEM (.cer PEM + .key PEM sin cifrar)" do
+      cer_bin = File.read!(@csd_cer_pem)
+      key_bin = File.read!(@csd_key_pem)
+
+      assert {:ok, %Credential{} = cred} = Credential.from_binary(cer_bin, key_bin)
+      assert Credential.rfc(cred) == @rfc_esperado
+      assert Credential.key_matches_certificate?(cred)
+    end
+
+    test "auto-detecta formatos mezclados (.cer DER + .key PEM)" do
+      cer_bin = File.read!(@csd_cer)
+      key_bin = File.read!(@csd_key_pem)
+
+      assert {:ok, %Credential{} = cred} = Credential.from_binary(cer_bin, key_bin)
+      assert Credential.key_matches_certificate?(cred)
+    end
+
+    test "falla con contraseña incorrecta sobre key DER cifrada" do
+      cer_bin = File.read!(@csd_cer)
+      key_bin = File.read!(@csd_key)
+      assert {:error, _} = Credential.from_binary(cer_bin, key_bin, "mal_password")
+    end
+
+    test "firma desde from_binary equivale a firma desde create" do
+      {:ok, cred_file} = Credential.create(@csd_cer, @csd_key, @key_password)
+
+      {:ok, cred_bin} =
+        Credential.from_binary(File.read!(@csd_cer), File.read!(@csd_key), @key_password)
+
+      data = "cadena de prueba"
+      sig = Credential.sign(cred_bin, data)
+      assert Credential.verify(cred_file, data, sig) == true
+    end
+  end
+
   describe "Credential.is_csd? / is_fiel?" do
     test "la credencial con CSD de prueba es CSD" do
       {:ok, cred} = Credential.create(@csd_cer, @csd_key, @key_password)

@@ -31,6 +31,41 @@ defmodule Sat.Certificados.Credential do
     end
   end
 
+  @doc """
+  Crea una credencial desde los bytes crudos de los archivos `.cer` y `.key`,
+  sin pasar por el filesystem. Útil cuando ya leíste el archivo a memoria
+  (por ejemplo desde `Plug.Upload` con `File.read/1`).
+
+  Auto-detecta PEM vs DER en cada binario por separado, así que funciona con:
+
+    * `.cer` DER + `.key` DER cifrado (formato típico del SAT, requiere `password`)
+    * `.cer` PEM + `.key` PEM sin cifrar (`password` se ignora)
+    * cualquier mezcla de los anteriores
+  """
+  @spec from_binary(binary(), binary(), String.t() | nil) :: {:ok, t()} | {:error, term()}
+  def from_binary(cer_bin, key_bin, password \\ nil)
+      when is_binary(cer_bin) and is_binary(key_bin) do
+    with {:ok, cert} <- load_cert(cer_bin),
+         {:ok, pk} <- load_key(key_bin, password) do
+      {:ok, %__MODULE__{certificate: cert, private_key: pk}}
+    end
+  end
+
+  defp load_cert(bin) do
+    if pem_like?(bin), do: Certificate.from_pem(bin), else: Certificate.from_der(bin)
+  end
+
+  defp load_key(bin, password) do
+    if pem_like?(bin),
+      do: PrivateKey.from_pem(bin),
+      else: PrivateKey.from_der(bin, password || "")
+  end
+
+  defp pem_like?(bin) do
+    sample = binary_part(bin, 0, min(byte_size(bin), 32))
+    String.contains?(sample, "-----")
+  end
+
   @doc "RFC del titular (desde el certificado)."
   @spec rfc(t()) :: String.t()
   def rfc(%__MODULE__{certificate: c}), do: Certificate.rfc(c)
