@@ -93,12 +93,13 @@ defmodule Sat.Certificados.ToMapTest do
   end
 
   describe "Certificate.to_map/2 — FIEL" do
-    test "tipo :fiel y persona física" do
+    test "tipo :fiel, persona física, y expone CURP del subject" do
       {:ok, cert} = Certificate.from_file(@fiel_cer)
 
       assert %{
                type: :fiel,
-               subject_type: :fisica
+               subject_type: :fisica,
+               curp: "CACX760510MGTSHC04"
              } = Certificate.to_map(cert)
     end
   end

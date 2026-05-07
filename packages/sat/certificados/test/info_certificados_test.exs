@@ -43,6 +43,9 @@ defmodule Cfdi.InfoCertificadosTest do
       assert Certificate.certificate_type(cert) == :csd
       assert Certificate.is_csd?(cert)
       refute Certificate.is_fiel?(cert)
+      # En el CSD de persona moral, la CURP que aparece en subject["serialNumber"]
+      # corresponde al representante legal de la empresa, no al titular RFC.
+      assert Certificate.curp(cert) == "FUAB770117MDFRNN09"
 
       assert Certificate.no_certificado(cert) == "20001000000300022815"
       assert Certificate.ac_version(cert) == 3
@@ -95,6 +98,8 @@ defmodule Cfdi.InfoCertificadosTest do
       assert Certificate.certificate_type(cert) == :fiel
       assert Certificate.is_fiel?(cert)
       refute Certificate.is_csd?(cert)
+      # FIEL personas físicas exponen el CURP en subject["serialNumber"]
+      assert Certificate.curp(cert) == "CACX760510MGTSHC04"
 
       assert Certificate.no_certificado(cert) == "30001000000500003282"
       assert Certificate.ac_version(cert) == 5

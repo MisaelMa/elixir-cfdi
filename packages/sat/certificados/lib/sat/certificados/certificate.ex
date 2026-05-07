@@ -9,6 +9,10 @@ defmodule Sat.Certificados.Certificate do
 
   @rfc_re ~r/^[A-Z&Ñ]{3,4}\d{6}[A-Z\d]{3}$/iu
 
+  # CURP — 18 caracteres: AAAA######HMAAAA##
+  # Estructura: [iniciales x4][fecha YYMMDD][H/M sexo][entidad x2][consonantes x3][digito verificador x2]
+  @curp_re ~r/^[A-Z][AEIOUX][A-Z]{2}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/iu
+
   @doc """
   Crea un certificado a partir del contenido DER binario (.cer).
   """
@@ -112,6 +116,50 @@ defmodule Sat.Certificados.Certificate do
   def legal_name(%__MODULE__{parsed: otp}) do
     attrs = subject_attributes(otp)
     Map.get(attrs, "CN") || Map.get(attrs, "givenName") || ""
+  end
+
+  @doc """
+  CURP presente en el subject del certificado.
+
+  Busca un valor con formato CURP en los atributos `serialNumber`,
+  `x500UniqueIdentifier` y `UID` del subject DN, separando por `/` y
+  devolviendo la primer parte que coincida con el patrón CURP.
+
+  ## Semántica por tipo de cert
+
+  - **FIEL persona física**: la CURP corresponde al titular del
+    certificado (típicamente en `serialNumber`).
+  - **CSD persona moral**: la CURP suele aparecer en `serialNumber`
+    pero corresponde al **representante legal** de la persona moral,
+    no al contribuyente RFC titular del certificado. El consumidor
+    debe interpretar el valor según `subject_type/1`.
+  - **CSD persona física / FIEL persona moral**: pueden o no incluir
+    CURP según cómo el SAT haya emitido el cert.
+
+  Devuelve `nil` cuando no se encuentra ningún valor con formato CURP.
+  """
+  @spec curp(t()) :: String.t() | nil
+  def curp(%__MODULE__{parsed: otp}) do
+    attrs = subject_attributes(otp)
+    curp_from_keys(attrs, ["serialNumber", "x500UniqueIdentifier", "UID"])
+  end
+
+  defp curp_from_keys(attrs, keys) do
+    Enum.find_value(keys, fn key ->
+      case Map.get(attrs, key) do
+        nil -> nil
+        raw -> curp_from_raw(raw)
+      end
+    end)
+  end
+
+  defp curp_from_raw(raw) when is_binary(raw) do
+    raw
+    |> String.split("/")
+    |> Enum.map(&String.trim/1)
+    |> Enum.find_value(fn part ->
+      if part != "" and Regex.match?(@curp_re, part), do: String.upcase(part)
+    end)
   end
 
   @doc """
@@ -585,6 +633,7 @@ defmodule Sat.Certificados.Certificate do
       type: certificate_type(cert),
       subject_type: subject_type(cert),
       rfc: rfc(cert),
+      curp: curp(cert),
       legal_name: legal_name(cert),
       no_certificado: no_certificado(cert),
       serial_number: serial_number(cert),

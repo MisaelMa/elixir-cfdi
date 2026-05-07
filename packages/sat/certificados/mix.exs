@@ -4,7 +4,7 @@ defmodule Sat.Certificados.MixProject do
   def project do
     [
       app: :sat_certificados,
-      version: "4.0.2",
+      version: "4.1.0",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",
