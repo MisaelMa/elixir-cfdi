@@ -32,7 +32,7 @@ defmodule SAT_CFDI.MixProject do
       {:cfdi_cancelacion, path: "packages/cfdi/cancelacion"},
       {:cfdi_cleaner, path: "packages/cfdi/cleaner"},
       {:cfdi_complementos, path: "packages/cfdi/complementos"},
-      {:cfdi_csf, path: "packages/cfdi/csf"},
+      {:sat_csf, path: "packages/sat/csf"},
       {:cfdi_descarga, path: "packages/cfdi/descarga"},
       {:cfdi_designs, path: "packages/cfdi/designs"},
       {:cfdi_elements, path: "packages/cfdi/elements"},

@@ -3,7 +3,7 @@ defmodule Cfdi.Csf.MixProject do
 
   def project do
     [
-      app: :cfdi_csf,
+      app: :sat_csf,
       version: "4.0.1",
       build_path: "../../../_build",
       deps_path: "../../../deps",
@@ -12,7 +12,8 @@ defmodule Cfdi.Csf.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Constancia de Situación Fiscal (CSF) desde texto de PDF",
-      package: package()
+      package: package(),
+      releaser: [publish: true]
     ]
   end
 
@@ -22,7 +23,9 @@ defmodule Cfdi.Csf.MixProject do
 
   defp deps do
     [
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:ex_pdf, "~> 1.0.3"},
+      {:sat_catalogos, path: "../catalogos"},
     ]
   end
 
