@@ -8,7 +8,7 @@ defmodule Sat.Csf do
       {:ok, %Sat.Csf.Document{} = csf} = Sat.Csf.from_file("priv/csf.pdf")
 
       csf.identificacion.rfc
-      #=> "MACA961017759"
+      #=> "XAXX010101000"
 
       csf.regimenes
       #=> [%Sat.Csf.Regimen{regimen: "...", codigo: "626", ...}, ...]
