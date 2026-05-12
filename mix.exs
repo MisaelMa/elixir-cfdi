@@ -21,6 +21,7 @@ defmodule SAT_CFDI.MixProject do
     cfdi_apps() ++
       sat_apps() ++
       clir_apps() ++
+      browser_apps() ++
       renapo_apps() ++
       [
         {:releaser, "~> 0.0.7", only: :dev, runtime: false}
@@ -64,8 +65,9 @@ defmodule SAT_CFDI.MixProject do
       {:sat_diot, path: "packages/sat/diot"},
       {:sat_opinion, path: "packages/sat/opinion"},
       {:sat_pacs, path: "packages/sat/pacs"},
+      {:sat_portal_cfdi, path: "packages/sat/portal_cfdi"},
       {:sat_recursos, path: "packages/sat/recursos"},
-      {:sat_scraper, path: "packages/sat/scraper"},
+      {:sat_ws_descarga_masiva, path: "packages/sat/ws_descarga_masiva"},
       {:sat_xsd, path: "packages/sat/xsd"}
     ]
   end
@@ -74,6 +76,12 @@ defmodule SAT_CFDI.MixProject do
     [
       {:clir_openssl, path: "packages/clir/openssl"},
       {:saxon_he, path: "packages/clir/saxon_he"}
+    ]
+  end
+
+  defp browser_apps do
+    [
+      {:browser_tls, path: "packages/browser/tls"}
     ]
   end
 

@@ -24,8 +24,8 @@ defmodule Sat.PortalCfdi.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
-      {:req, "~> 0.5"},
       {:floki, "~> 0.36"},
+      {:browser_tls, path: "../../browser/tls"},
       {:sat_certificados, path: "../certificados"}
     ]
   end
@@ -34,7 +34,10 @@ defmodule Sat.PortalCfdi.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
-      maintainers: ["Misael Madrigal"]
+      maintainers: ["Misael Madrigal"],
+      # Lista explicita: solo lo listado se sube al Hex package.
+      # Cualquier `.onnx` en `priv/models/` (o donde sea) NO se incluye.
+      files: ~w(lib mix.exs README.md LICENSE)
     ]
   end
 end
