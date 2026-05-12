@@ -124,15 +124,24 @@ defmodule Cfdi.Comprobante do
 
   # Override: el macro expondría `:xmlns` y `:schema_location` como hijos,
   # pero son metadata del documento — no aparecen en la proyección a mapa.
-  # Además, envolvemos `cfdi:Conceptos` con su hijo canónico `cfdi:Concepto`.
+  # Además, envolvemos `cfdi:Conceptos` con su hijo canónico `cfdi:Concepto` y
+  # colapsamos la lista `cfdi:Complementos` en el tag singular `cfdi:Complemento`
+  # que exige el Anexo 20 (un único nodo con todos los complementos como hijos).
+  #
+  # Los complementos se extraen ANTES del macro genérico porque cada
+  # complemento concreto (Pago20, Nomina12, ...) implementa `get_complement/1`
+  # con su propia key namespaced — la proyección genérica no la conoce.
   def to_map(c, opts) when is_struct(c, __MODULE__) and is_list(opts) do
-    base =
-      c
-      |> Map.put(:xmlns, nil)
-      |> Map.put(:schema_location, nil)
-      |> Cfdi.Xml.Element.__to_map__(__MODULE__, opts)
+    ns? = Keyword.get(opts, :ns, true)
+    complementos_list = Map.get(c, :"cfdi:Complementos") || []
 
-    wrap_conceptos(base, Keyword.get(opts, :ns, true))
+    c
+    |> Map.put(:xmlns, nil)
+    |> Map.put(:schema_location, nil)
+    |> Map.put(:"cfdi:Complementos", nil)
+    |> Cfdi.Xml.Element.__to_map__(__MODULE__, opts)
+    |> wrap_conceptos(ns?)
+    |> inject_complemento(complementos_list, ns?)
   end
 
   defp wrap_conceptos(map, ns?) do
@@ -153,6 +162,42 @@ defmodule Cfdi.Comprobante do
           _ ->
             map
         end
+    end
+  end
+
+  # Colapsa la lista de wrappers `%Cfdi.Complemento{children: [...]}` en un
+  # único nodo `cfdi:Complemento` cuyos hijos son los complementos concretos
+  # (Pago20, Nomina12, etc.) indexados por su `key` namespaced.
+  #
+  # El SAT exige exactamente UN `<cfdi:Complemento>` por comprobante; cualquier
+  # número de complementos concretos viven como hijos de ese nodo.
+  defp inject_complemento(map, [], _ns?), do: map
+
+  defp inject_complemento(map, complementos, ns?) do
+    root_key = if ns?, do: "cfdi:Comprobante", else: "Comprobante"
+    singular_key = if ns?, do: "cfdi:Complemento", else: "Complemento"
+
+    case Map.get(map, root_key) do
+      nil ->
+        map
+
+      body ->
+        merged =
+          complementos
+          |> Enum.flat_map(fn
+            %Complemento{children: children} -> children || []
+            _ -> []
+          end)
+          |> Enum.reject(&is_nil/1)
+          |> Enum.reduce(%{}, fn child, acc ->
+            meta = child.__struct__.get_complement(child)
+            Map.put(acc, meta.key, meta.complement)
+          end)
+
+        new_body =
+          if map_size(merged) == 0, do: body, else: Map.put(body, singular_key, merged)
+
+        Map.put(map, root_key, new_body)
     end
   end
 end
