@@ -34,7 +34,6 @@ defmodule SAT_CFDI.MixProject do
       {:cfdi_cleaner, path: "packages/cfdi/cleaner"},
       {:cfdi_complementos, path: "packages/cfdi/complementos"},
       {:sat_csf, path: "packages/sat/csf"},
-      {:cfdi_descarga, path: "packages/cfdi/descarga"},
       {:cfdi_designs, path: "packages/cfdi/designs"},
       {:cfdi_elements, path: "packages/cfdi/elements"},
       {:cfdi_estado, path: "packages/cfdi/estado"},
@@ -67,7 +66,7 @@ defmodule SAT_CFDI.MixProject do
       {:sat_pacs, path: "packages/sat/pacs"},
       {:sat_portal_cfdi, path: "packages/sat/portal_cfdi"},
       {:sat_recursos, path: "packages/sat/recursos"},
-      {:sat_ws_descarga_masiva, path: "packages/sat/ws_descarga_masiva"},
+      {:sat_cfdi_descarga, path: "packages/sat/cfdi_descarga"},
       {:sat_xsd, path: "packages/sat/xsd"}
     ]
   end
