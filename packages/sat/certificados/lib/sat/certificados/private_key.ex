@@ -129,10 +129,14 @@ defmodule Sat.Certificados.PrivateKey do
     rsa = ensure_rsa_private(decoded)
     der = :public_key.der_encode(:RSAPrivateKey, rsa)
 
+    # OTP 28: el schema PKCS#8 migró a OneAsymmetricKey (RFC 5958), que
+    # añade el campo opcional `publicKey [1]`. El record :PrivateKeyInfo
+    # pasó de 5 a 6 elementos; el último `:asn1_NOVALUE` omite ese campo.
+    # Requiere OTP 28+ (en OTP 27 era una 5-tupla).
     pki =
       {:PrivateKeyInfo, :v1,
        {:PrivateKeyInfo_privateKeyAlgorithm, {1, 2, 840, 113_549, 1, 1, 1},
-        {:asn1_OPENTYPE, <<5, 0>>}}, der, :asn1_NOVALUE}
+        {:asn1_OPENTYPE, <<5, 0>>}}, der, :asn1_NOVALUE, :asn1_NOVALUE}
 
     pki_der = :public_key.der_encode(:PrivateKeyInfo, pki)
     :public_key.pem_encode([{:PrivateKeyInfo, pki_der, :not_encrypted}])

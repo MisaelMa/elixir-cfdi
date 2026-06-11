@@ -4,7 +4,7 @@ defmodule Sat.CfdiDescarga.MixProject do
   def project do
     [
       app: :sat_cfdi_descarga,
-      version: "1.5.1",
+      version: "1.5.2",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",

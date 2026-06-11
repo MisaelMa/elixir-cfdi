@@ -587,6 +587,18 @@ defmodule Sat.Certificados.Certificate do
   defp directory_string({:bmpString, b}) when is_binary(b), do: b
   defp directory_string({:bmpString, b}) when is_list(b), do: List.to_string(b)
 
+  # OTP 28: los atributos cuyo OID no está en la tabla estándar de
+  # :public_key (p. ej. x500UniqueIdentifier / 2.5.4.45, donde el SAT
+  # codifica "RFC / CURP") ya NO se auto-decodifican; llegan como open
+  # type ASN.1 con el TLV BER crudo. OTP 27 los entregaba ya resueltos
+  # como {:printableString, _}. Decodificamos el TLV a mano.
+  defp directory_string({:asn1_OPENTYPE, ber}) when is_binary(ber) do
+    case decode_ber_string(ber) do
+      {:ok, str} -> str
+      :error -> ""
+    end
+  end
+
   defp directory_string(s) when is_binary(s) do
     case decode_ber_string(s) do
       {:ok, str} -> str

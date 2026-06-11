@@ -5,7 +5,7 @@ defmodule SAT_CFDI.MixProject do
     [
       app: :sat_cfdi,
       version: "0.1.0",
-      elixir: "~> 1.17",
+      elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
