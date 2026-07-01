@@ -2,7 +2,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
   @moduledoc """
   Servicio `SolicitaDescarga` del WS de Descarga Masiva (v1.5).
 
-  Endpoint: `https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-SolicitudService/solicitud`.
+  Endpoint: `https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/SolicitaDescargaService.svc`.
 
   Registra una solicitud de descarga por rango de fechas, RFC emisor/receptor,
   tipo de comprobante, estado, complemento, UUID, etc. Retorna un
@@ -21,7 +21,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
   alias Sat.Cfdi.Descarga.Masiva.Internal.{Http, Parser, SoapEnvelope}
   alias Sat.Cfdi.Descarga.Masiva.Types.{SolicitudParams, SolicitudResult, Token}
 
-  @endpoint "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-SolicitudService/solicitud"
+  @endpoint "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/SolicitaDescargaService.svc"
 
   @soap_action_base "http://DescargaMasivaTerceros.sat.gob.mx/ISolicitaDescargaService/"
 

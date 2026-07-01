@@ -2,7 +2,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Verificacion do
   @moduledoc """
   Servicio `VerificaSolicitudDescarga` del WS de Descarga Masiva.
 
-  Endpoint: `https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-ConsultaService/verificacion`.
+  Endpoint: `https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/VerificaSolicitudDescargaService.svc`.
 
   Consulta el estado de una solicitud previa. Posibles estados:
   `:aceptada` (1), `:en_proceso` (2), `:terminada` (3), `:error` (4),
@@ -15,7 +15,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Verificacion do
   alias Sat.Cfdi.Descarga.Masiva.Internal.{Http, Parser, SoapEnvelope}
   alias Sat.Cfdi.Descarga.Masiva.Types.{Token, VerificacionResult}
 
-  @endpoint "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-ConsultaService/verificacion"
+  @endpoint "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/VerificaSolicitudDescargaService.svc"
   @soap_action "http://DescargaMasivaTerceros.sat.gob.mx/IVerificaSolicitudDescargaService/VerificaSolicitudDescarga"
 
   @default_poll_interval_ms 30_000

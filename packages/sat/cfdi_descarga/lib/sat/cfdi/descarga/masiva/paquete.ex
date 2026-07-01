@@ -2,7 +2,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Paquete do
   @moduledoc """
   Servicio `DescargaMasivaSolicitudes` del WS de Descarga Masiva.
 
-  Endpoint: `https://cfdidescargamasivadescarga.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-DescargaService/descarga`.
+  Endpoint: `https://cfdidescargamasiva.clouda.sat.gob.mx/DescargaMasivaService.svc`.
 
   Descarga un paquete por su `id_paquete`. La respuesta contiene el contenido
   del ZIP en base64 dentro del sobre SOAP. Cada paquete puede contener hasta
@@ -13,7 +13,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Paquete do
   alias Sat.Cfdi.Descarga.Masiva.Internal.{Http, Parser, SoapEnvelope}
   alias Sat.Cfdi.Descarga.Masiva.Types.{Paquete, Token}
 
-  @endpoint "https://cfdidescargamasivadescarga.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-DescargaService/descarga"
+  @endpoint "https://cfdidescargamasiva.clouda.sat.gob.mx/DescargaMasivaService.svc"
   @soap_action "http://DescargaMasivaTerceros.sat.gob.mx/IDescargaMasivaTercerosService/Descargar"
 
   @doc """

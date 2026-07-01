@@ -2,7 +2,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Autenticacion do
   @moduledoc """
   Servicio `Autentica` del WS de Descarga Masiva.
 
-  Endpoint: `https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-AuthService/autenticacion`.
+  Endpoint: `https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/Autenticacion/Autenticacion.svc`.
 
   Genera un sobre SOAP con `wsse:BinarySecurityToken` (FIEL en base64) y
   un `ds:Signature` sobre el `wsu:Timestamp`. El servidor responde con un
@@ -13,7 +13,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Autenticacion do
   alias Sat.Cfdi.Descarga.Masiva.Internal.{Http, Parser, SoapEnvelope}
   alias Sat.Cfdi.Descarga.Masiva.Types.Token
 
-  @endpoint "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/CFDI-descarga-masiva-CSD-AuthService/autenticacion"
+  @endpoint "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/Autenticacion/Autenticacion.svc"
   @soap_action "http://DescargaMasivaTerceros.gob.mx/IAutenticacion/Autentica"
 
   @doc """

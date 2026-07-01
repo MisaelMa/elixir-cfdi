@@ -161,14 +161,17 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
     wrap_envelope_with_token(body, token)
   end
 
-  defp wrap_envelope_with_token(body, token) do
+  # Solicitud / Verificación / Descarga: el sobre lleva el Header VACÍO. La firma
+  # XML-DSig va DENTRO del body (nodo `solicitud`/`peticionDescarga`) y el token
+  # viaja en el header HTTP `Authorization: WRAP access_token="..."` (ver Http).
+  #
+  # NO se incluye `<wsse:Security>`: estos endpoints usan BasicHttpBinding y
+  # devuelven un fault `MustUnderstand` si reciben ese header con
+  # `mustUnderstand="1"`. (Solo la Autenticación firma en el Security header.)
+  defp wrap_envelope_with_token(body, _token) do
     ~s|<?xml version="1.0" encoding="UTF-8"?>| <>
       ~s|<s:Envelope xmlns:s="#{@ns_soap}">| <>
-      ~s|<s:Header>| <>
-      ~s|<o:Security xmlns:o="#{@ns_wsse}" s:mustUnderstand="1">| <>
-      ~s|<o:BinarySecurityToken>#{token}</o:BinarySecurityToken>| <>
-      ~s|</o:Security>| <>
-      ~s|</s:Header>| <>
+      ~s|<s:Header/>| <>
       ~s|<s:Body>| <>
       body <>
       ~s|</s:Body>| <>
