@@ -28,12 +28,28 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
     end
   end
 
-  @doc "Parsea la respuesta de `SolicitaDescarga`."
+  @doc """
+
+  Parsea la respuesta de `SolicitaDescarga`.
+
+
+  <s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">
+    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">
+      <SolicitaDescargaEmitidosResponse xmlns=\"http://DescargaMasivaTerceros.sat.gob.mx\">
+      <SolicitaDescargaEmitidosResult IdSolicitud=\"3cd7ba01-b9d9-4a7d-ae9e-4f21583d8e00\" RfcSolicitante=\"MACA961017759\" CodEstatus=\"5000\" Mensaje=\"Solicitud Aceptada\"/>
+      </SolicitaDescargaEmitidosResponse>
+    </s:Body>
+  </s:Envelope>
+  """
+
   @spec parse_solicitud(binary()) :: {:ok, SolicitudResult.t()} | {:error, term()}
   def parse_solicitud(body) when is_binary(body) do
-    cod_estatus = extract_attr(body, "SolicitaDescargaResult", "CodEstatus") || ""
-    mensaje = extract_attr(body, "SolicitaDescargaResult", "Mensaje") || ""
-    id_solicitud = extract_attr(body, "SolicitaDescargaResult", "IdSolicitud")
+    # v1.5 renombró la operación: el Result es `SolicitaDescargaEmitidosResult`,
+    # `SolicitaDescargaRecibidosResult` o `SolicitaDescargaFolioResult` según el
+    # tipo (ya no el genérico `SolicitaDescargaResult`). Matcheamos cualquiera.
+    cod_estatus = extract_solicitud_attr(body, "CodEstatus") || ""
+    mensaje = extract_solicitud_attr(body, "Mensaje") || ""
+    id_solicitud = extract_solicitud_attr(body, "IdSolicitud")
 
     if cod_estatus == "" and mensaje == "" do
       {:error, {:parse_error, :missing_fields, body}}
@@ -62,7 +78,9 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
       |> parse_int_or_zero()
 
     mensaje = extract_attr(body, "VerificaSolicitudDescargaResult", "Mensaje")
-    id_solicitud = extract_attr(body, "VerificaSolicitudDescargaResult", "IdsPaquetes") |> nil_to_empty()
+
+    id_solicitud =
+      extract_attr(body, "VerificaSolicitudDescargaResult", "IdsPaquetes") |> nil_to_empty()
 
     ids_paquetes = extract_all_text(body, "IdsPaquetes")
 
@@ -107,7 +125,10 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
       String.contains?(body, "<s:Fault") or String.contains?(body, "<soap:Fault") or
           String.contains?(body, "<faultcode") ->
         faultcode = extract_text_loose(body, "faultcode") || extract_text_loose(body, "Code")
-        faultstring = extract_text_loose(body, "faultstring") || extract_text_loose(body, "Reason")
+
+        faultstring =
+          extract_text_loose(body, "faultstring") || extract_text_loose(body, "Reason")
+
         {:error, {:soap_fault, faultcode || "unknown", faultstring || "unknown"}}
 
       true ->
@@ -123,7 +144,8 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
   end
 
   defp extract_text_loose(body, name) do
-    pattern = ~r/<(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}>/
+    pattern =
+      ~r/<(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}>/
 
     case Regex.run(pattern, body) do
       [_, content] -> content
@@ -132,11 +154,28 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
   end
 
   defp extract_all_text(body, name) do
-    pattern = ~r/<(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}>/
+    pattern =
+      ~r/<(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?#{Regex.escape(strip_prefix(name))}>/
 
     Regex.scan(pattern, body)
     |> Enum.map(fn [_, content] -> String.trim(content) end)
     |> Enum.reject(&(&1 == ""))
+  end
+
+  # Extrae un atributo del elemento `SolicitaDescarga*Result` (Emitidos /
+  # Recibidos / Folio en v1.5, o el genérico viejo). Igual que `extract_attr`
+  # pero con el nombre del tag flexible.
+  defp extract_solicitud_attr(body, attr_name) do
+    case Regex.run(~r/<(?:[\w-]+:)?SolicitaDescarga\w*Result\b([^>]*)/, body) do
+      [_, attrs_blob] ->
+        case Regex.run(~r/#{Regex.escape(attr_name)}="([^"]*)"/, attrs_blob) do
+          [_, value] -> unescape(value)
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
   end
 
   defp extract_attr(body, element_name, attr_name) do
@@ -180,6 +219,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
   defp parse_estado_solicitud("5"), do: :rechazada
   defp parse_estado_solicitud("6"), do: :vencida
   defp parse_estado_solicitud(nil), do: 0
+
   defp parse_estado_solicitud(other) when is_binary(other) do
     case Integer.parse(other) do
       {n, _} -> n
@@ -188,6 +228,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
   end
 
   defp parse_int_or_zero(nil), do: 0
+
   defp parse_int_or_zero(s) when is_binary(s) do
     case Integer.parse(s) do
       {n, _} -> n
