@@ -1,6 +1,8 @@
 defmodule Sat.Cfdi.Descarga.Masiva.Internal.Http do
   @moduledoc false
 
+  require Logger
+
   @default_timeout 30_000
 
   @doc """
@@ -22,23 +24,43 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Http do
 
     timeout = opts[:timeout] || @default_timeout
 
+    req_body = body_to_binary(body)
+
+    # Log del REQUEST (activá con `Logger.configure(level: :debug)` en runtime).
+    Logger.debug(fn ->
+      "[SAT SOAP →] action=#{soap_action}\nurl=#{url}\ntoken=#{present?(opts[:token])}\n#{req_body}"
+    end)
+
     case Req.post(url,
-           body: body,
+           body: req_body,
            headers: headers,
            receive_timeout: timeout,
            connect_options: [timeout: timeout],
            retry: false,
            decode_body: false
          ) do
-      {:ok, %Req.Response{status: status, body: body, headers: headers}} ->
-        {:ok, %{status: status, body: body_to_binary(body), headers: headers}}
+      {:ok, %Req.Response{status: status, body: resp_body, headers: resp_headers}} ->
+        resp = body_to_binary(resp_body)
+
+        # Log del RESPONSE.
+        Logger.debug(fn ->
+          "[SAT SOAP ←] action=#{soap_action} status=#{status}\n#{resp}"
+        end)
+
+        {:ok, %{status: status, body: resp, headers: resp_headers}}
 
       {:error, reason} ->
+        Logger.debug(fn -> "[SAT SOAP ✗] action=#{soap_action} network_error=#{inspect(reason)}" end)
         {:error, {:network_error, reason}}
     end
   rescue
-    e -> {:error, {:exception, e}}
+    e ->
+      Logger.debug(fn -> "[SAT SOAP ✗] action=#{soap_action} exception=#{inspect(e)}" end)
+      {:error, {:exception, e}}
   end
+
+  defp present?(nil), do: "no"
+  defp present?(_), do: "sí"
 
   defp auth_header(nil), do: []
 

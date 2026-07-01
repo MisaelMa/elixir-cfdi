@@ -179,16 +179,20 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
   end
 
   defp solicitud_attributes(%Credential{} = cred, %SolicitudParams{} = p) do
-    rfc_emisor =
-      if p.tipo_solicitud == :recibidos,
-        do: p.rfc_emisor,
-        else: p.rfc_emisor || Credential.rfc(cred)
-
     rfc_solicitante = p.rfc_solicitante || Credential.rfc(cred)
 
-    # Orden exacto requerido por el SAT para validacion de firma (C14N):
-    # Complemento, EstadoComprobante, FechaInicial, FechaFinal, Folio,
-    # RfcACuentaTerceros, RfcEmisor, RfcSolicitante, TipoComprobante, TipoSolicitud
+    # El SAT es simétrico invertido:
+    #   emitidos → atributo `RfcEmisor` = solicitante (RfcReceptor sería filtro)
+    #   recibidos → atributo `RfcReceptor` = solicitante (RfcEmisor sería filtro)
+    {rfc_emisor, rfc_receptor} =
+      if p.tipo_solicitud == :recibidos do
+        {p.rfc_emisor, rfc_solicitante}
+      else
+        {p.rfc_emisor || rfc_solicitante, nil}
+      end
+
+    # Orden exacto (alfabético) requerido por el SAT para validacion de firma
+    # (C14N): ... RfcACuentaTerceros, RfcEmisor, RfcReceptor, RfcSolicitante ...
     [
       {"Complemento", complemento_string(p.complemento)},
       {"EstadoComprobante", estado_comprobante_string(p.estado_comprobante)},
@@ -197,6 +201,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
       {"Folio", p.uuid},
       {"RfcACuentaTerceros", p.rfc_a_cuenta_terceros},
       {"RfcEmisor", rfc_emisor},
+      {"RfcReceptor", rfc_receptor},
       {"RfcSolicitante", rfc_solicitante},
       {"TipoComprobante", tipo_comprobante_string(p.tipo_comprobante)},
       {"TipoSolicitud", tipo_solicitud_string(p.tipo_solicitud)}
