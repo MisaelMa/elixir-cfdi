@@ -1,10 +1,10 @@
 defmodule Sat.Cfdi.Descarga.MasivaTest do
   use ExUnit.Case, async: true
 
-  alias Sat.Cfdi.Descarga.Masiva
   alias Sat.Cfdi.Descarga.Masiva.{Autenticacion, Paquete, Solicitud, Verificacion}
   alias Sat.Cfdi.Descarga.Masiva.Paquete.Reader
-  alias Sat.Cfdi.Descarga.Masiva.Types.{Paquete, SolicitudParams, Token}
+  alias Sat.Cfdi.Descarga.Masiva.Types.Paquete, as: PaqueteStruct
+  alias Sat.Cfdi.Descarga.Masiva.Types.{SolicitudParams, Token}
 
   test "version/0 retorna la version del paquete" do
     assert is_list(Sat.Cfdi.Descarga.version()) or
@@ -29,7 +29,7 @@ defmodule Sat.Cfdi.Descarga.MasivaTest do
 
     test "Paquete expone el endpoint oficial" do
       assert Paquete.endpoint() =~
-               "cfdidescargamasivadescarga.clouda.sat.gob.mx"
+               "cfdidescargamasiva.clouda.sat.gob.mx"
     end
   end
 
@@ -86,13 +86,13 @@ defmodule Sat.Cfdi.Descarga.MasivaTest do
 
   describe "Reader" do
     test "stream_cfdis con paquete vacio retorna error de zip" do
-      paquete = %Paquete{id: "PKG-X", content: <<>>, size: 0}
+      paquete = %PaqueteStruct{id: "PKG-X", content: <<>>, size: 0}
       assert {:error, {:zip_error, _}} = Reader.stream_cfdis(paquete)
     end
 
     test "stream_cfdis filtra solo .xml de un ZIP real" do
       zip = build_zip([{"factura1.xml", "<cfdi>1</cfdi>"}, {"factura2.xml", "<cfdi>2</cfdi>"}, {"readme.txt", "ignored"}])
-      paquete = %Paquete{id: "PKG-1", content: zip, size: byte_size(zip)}
+      paquete = %PaqueteStruct{id: "PKG-1", content: zip, size: byte_size(zip)}
 
       {:ok, stream} = Reader.stream_cfdis(paquete)
       list = Enum.to_list(stream)
@@ -104,7 +104,7 @@ defmodule Sat.Cfdi.Descarga.MasivaTest do
 
     test "list_files devuelve nombres dentro del ZIP" do
       zip = build_zip([{"a.xml", "x"}, {"b.txt", "y"}])
-      paquete = %Paquete{id: "PKG-2", content: zip, size: byte_size(zip)}
+      paquete = %PaqueteStruct{id: "PKG-2", content: zip, size: byte_size(zip)}
 
       {:ok, files} = Reader.list_files(paquete)
       assert Enum.sort(files) == ["a.xml", "b.txt"]
@@ -117,7 +117,7 @@ defmodule Sat.Cfdi.Descarga.MasivaTest do
           "22222222-2222-2222-2222-222222222222~CCC010101CCC~DDD010101DDD~250.50\r\n"
 
       zip = build_zip([{"metadata.txt", tsv}])
-      paquete = %Paquete{id: "PKG-META", content: zip, size: byte_size(zip)}
+      paquete = %PaqueteStruct{id: "PKG-META", content: zip, size: byte_size(zip)}
 
       {:ok, rows} = Reader.parse_metadata(paquete)
 

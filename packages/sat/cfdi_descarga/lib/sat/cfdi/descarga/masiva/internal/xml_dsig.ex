@@ -28,10 +28,17 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.XmlDsig do
   @spec build_signed_info(String.t(), String.t()) :: String.t()
   def build_signed_info(reference_id, digest_value_b64)
       when is_binary(reference_id) and is_binary(digest_value_b64) do
+    # URI="" (documento completo) cuando NO hay Id de referencia — solicitud,
+    # verificacion y descarga. URI="#id" cuando se firma un fragmento con Id,
+    # p. ej. el Timestamp de la autenticacion (Id="_0"). Coincide con el fixture
+    # oficial de phpcfdi/sat-ws-descarga-masiva. (Antes se emitia siempre "#id",
+    # produciendo URI="#" invalido para la solicitud.)
+    uri = if reference_id == "", do: "", else: "#" <> reference_id
+
     ~s|<SignedInfo xmlns="#{@ns_dsig}">| <>
       ~s|<CanonicalizationMethod Algorithm="#{@ns_excc14n}"></CanonicalizationMethod>| <>
       ~s|<SignatureMethod Algorithm="#{@sig_rsa_sha1}"></SignatureMethod>| <>
-      ~s|<Reference URI="##{reference_id}">| <>
+      ~s|<Reference URI="#{uri}">| <>
       ~s|<Transforms><Transform Algorithm="#{@ns_excc14n}"></Transform></Transforms>| <>
       ~s|<DigestMethod Algorithm="#{@digest_sha1}"></DigestMethod>| <>
       ~s|<DigestValue>#{digest_value_b64}</DigestValue>| <>

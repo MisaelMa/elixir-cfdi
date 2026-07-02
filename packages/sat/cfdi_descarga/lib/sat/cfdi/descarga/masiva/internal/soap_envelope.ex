@@ -63,8 +63,36 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
   Sobre SOAP para `SolicitaDescargaEmitidos`, `SolicitaDescargaRecibidos` o
   `SolicitaDescargaFolio`. Firma el nodo `solicitud` con FIEL.
 
-  `operation` debe ser el nombre de la operacion sin prefijo de namespace,
-  p. ej. `"SolicitaDescargaEmitidos"`.
+  Referencia oficial: `docs/sat/01-solicitud.pdf` §5 (SolicitaDescarga).
+
+  ## Parametros
+
+    * `cred` — `Sat.Certificados.Credential` (FIEL) para firmar.
+    * `params` — `SolicitudParams`. Campos que se leen y a que atributo del
+      nodo `<des:solicitud>` mapean:
+
+      | Campo `SolicitudParams` | Atributo XML       | Notas |
+      |-------------------------|--------------------|-------|
+      | `:fecha_inicial`        | `FechaInicial`     | `DateTime`/string ISO sin `Z`. Omitido en consulta por folio. |
+      | `:fecha_final`          | `FechaFinal`       | idem. |
+      | `:rfc_emisor`           | `RfcEmisor`        | En `:recibidos` queda como filtro. |
+      | `:rfc_receptor`         | `RfcReceptor` / `<des:RfcReceptores>` | En `:recibidos` = solicitante. Máx 5 receptores. |
+      | `:rfc_solicitante`      | `RfcSolicitante`   | Default: RFC del certificado. |
+      | `:rfc_a_cuenta_terceros`| `RfcACuentaTerceros` | Opcional. |
+      | `:tipo_solicitud`       | `TipoSolicitud`    | `:emitidos`/`:recibidos`/`:folio`/`:cfdi` → `"CFDI"`; `:metadata` → `"Metadata"`. |
+      | `:tipo_comprobante`     | `TipoComprobante`  | `:i`/`:e`/`:t`/`:n`/`:p` → mayúsculas; `:null` → `"Null"`. |
+      | `:estado_comprobante`   | `EstadoComprobante`| `:vigente` → `"Vigente"`, `:cancelado` → `"Cancelado"`, `:todos` → `"Todos"`, `nil` → omitido. Para CFDI recibidos usa `:vigente` (el SAT no entrega XML cancelados). |
+      | `:complemento`          | `Complemento`      | Opcional (ver lista en la doc). |
+      | `:uuid`                 | `Folio`            | Consulta por folio; en ese caso NO se declaran fechas ni RFCs. |
+
+    * `token` — token Bearer (viaja en el header HTTP `Authorization`, no en el SOAP).
+    * `operation` — nombre de la operacion sin prefijo, p. ej. `"SolicitaDescargaEmitidos"`.
+
+  Los atributos se emiten en ORDEN ALFABÉTICO (Complemento, EstadoComprobante,
+  FechaInicial, FechaFinal, Folio, RfcACuentaTerceros, RfcEmisor, RfcReceptor,
+  RfcSolicitante, TipoComprobante, TipoSolicitud). El SAT lo exige para poder
+  validar la firma sobre la forma canónica del nodo. Los atributos `nil`/`""`
+  se omiten.
   """
   @spec build_solicitud(Credential.t(), SolicitudParams.t(), String.t(), String.t()) :: String.t()
   def build_solicitud(
@@ -99,7 +127,19 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
     wrap_envelope_with_token(body, token)
   end
 
-  @doc "Sobre SOAP para `VerificaSolicitudDescarga`."
+  @doc """
+  Sobre SOAP para `VerificaSolicitudDescarga`.
+
+  Referencia oficial: `docs/sat/02-verificacion.pdf` §5.
+
+  Firma el nodo `<des:solicitud IdSolicitud RfcSolicitante>`.
+
+  ## Parametros
+    * `cred` — FIEL para firmar.
+    * `rfc_solicitante` — RFC del que generó la solicitud original.
+    * `id_solicitud` — `IdSolicitud` devuelto por `SolicitaDescarga`.
+    * `token` — token Bearer (header HTTP `Authorization`).
+  """
   @spec build_verificacion(Credential.t(), String.t(), String.t(), String.t()) :: String.t()
   def build_verificacion(
         %Credential{} = cred,
@@ -130,7 +170,18 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
     wrap_envelope_with_token(body, token)
   end
 
-  @doc "Sobre SOAP para `DescargaMasivaSolicitudes`. Firma el nodo `peticionDescarga`."
+  @doc """
+  Sobre SOAP para `DescargaMasivaSolicitudes` (operación
+  `PeticionDescargaMasivaTercerosEntrada`). Firma el nodo `peticionDescarga`.
+
+  Referencia oficial: `docs/sat/03-descarga.pdf`.
+
+  ## Parametros
+    * `cred` — FIEL para firmar.
+    * `rfc_solicitante` — RFC del solicitante (debe coincidir con la solicitud).
+    * `id_paquete` — `IdPaquete` devuelto por `VerificaSolicitudDescarga`.
+    * `token` — token Bearer (header HTTP `Authorization`).
+  """
   @spec build_descarga(Credential.t(), String.t(), String.t(), String.t()) :: String.t()
   def build_descarga(
         %Credential{} = cred,
@@ -196,8 +247,8 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
     [
       {"Complemento", complemento_string(p.complemento)},
       {"EstadoComprobante", estado_comprobante_string(p.estado_comprobante)},
-      {"FechaInicial", to_datetime_string(p.fecha_inicial)},
       {"FechaFinal", to_datetime_string(p.fecha_final)},
+      {"FechaInicial", to_datetime_string(p.fecha_inicial)},
       {"Folio", p.uuid},
       {"RfcACuentaTerceros", p.rfc_a_cuenta_terceros},
       {"RfcEmisor", rfc_emisor},
@@ -225,6 +276,10 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
   defp rfc_receptores_xml(%SolicitudParams{rfc_receptor: rfc}) when is_binary(rfc) do
     "<des:RfcReceptores><des:RfcReceptor>#{escape(rfc)}</des:RfcReceptor></des:RfcReceptores>"
   end
+
+  # En consulta por Folio (UUID) las fechas no se declaran (van nil); el
+  # atributo se omite despues en el Enum.reject de solicitud_attributes.
+  defp to_datetime_string(nil), do: nil
 
   defp to_datetime_string(%DateTime{} = dt) do
     dt
@@ -257,10 +312,14 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
     do: atom |> Atom.to_string() |> String.upcase()
   defp tipo_comprobante_string(other) when is_binary(other), do: other
 
+  # v1.5: el SAT espera el TEXTO del estado, no el numerico. Enviar "1"/"0"
+  # hace que el SAT no lo reconozca y asuma "Todos" → error 301 "No se permite
+  # la descarga de xml que se encuentren cancelados". Valores per fixture oficial
+  # de phpcfdi/sat-ws-descarga-masiva: "Vigente", "Cancelado", "Todos".
   defp estado_comprobante_string(nil), do: nil
-  defp estado_comprobante_string(:todos), do: nil
-  defp estado_comprobante_string(:cancelado), do: "0"
-  defp estado_comprobante_string(:vigente), do: "1"
+  defp estado_comprobante_string(:todos), do: "Todos"
+  defp estado_comprobante_string(:cancelado), do: "Cancelado"
+  defp estado_comprobante_string(:vigente), do: "Vigente"
   defp estado_comprobante_string(other) when is_binary(other), do: other
 
   defp escape(value) when is_binary(value) do

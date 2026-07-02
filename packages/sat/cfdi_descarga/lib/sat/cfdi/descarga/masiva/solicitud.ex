@@ -36,14 +36,74 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
     * `:recibidos` → `SolicitaDescargaRecibidos`
     * `:folio`     → `SolicitaDescargaFolio`
 
-  Opciones:
-    * `:credential` (requerido) — FIEL para firmar
-    * `:endpoint`   — override
-    * `:timeout`    — HTTP timeout
+  ## Opciones
+    * `:credential` (requerido) — FIEL para firmar.
+    * `:endpoint`   — override.
+    * `:timeout`    — HTTP timeout.
 
-  IMPORTANTE: El SAT permite maximo 2 solicitudes con los mismos parametros
-  (mismo RFC + mismo rango de fechas). La tercera solicitud identica devuelve
-  `cod_estatus = "5002"` de forma permanente para esa combinacion.
+  ## Retorno
+
+  `{:ok, %SolicitudResult{id_solicitud, cod_estatus, mensaje}}`.
+
+  > ⚠️ **`{:ok, _}` NO significa que el SAT aceptó.** El SAT responde HTTP 200
+  > incluso cuando rechaza la petición: el resultado real está en `cod_estatus`.
+  > Debes ramificar sobre `cod_estatus`:
+
+  | `cod_estatus` | Significado | Acción |
+  |---------------|-------------|--------|
+  | `"5000"` | Aceptada | Usa `id_solicitud` para verificar. |
+  | `"5002"` | Se agotaron las solicitudes de por vida | Ya hiciste 2 idénticas. Cambia rango/criterios. |
+  | `"5005"` | Ya existe una solicitud con esos criterios | Reutiliza el `IdSolicitud` anterior. |
+  | `"301"`  | XML Mal Formado / info inválida | RFC inválido, o pediste CFDI sin `estado_comprobante: :vigente` (el SAT no da XML cancelados). |
+  | `"303"`  | El sello no corresponde con RfcSolicitante | La FIEL no es del `rfc_solicitante`. |
+  | `"304"`/`"305"` | Certificado caduco/revocado/inválido | Revisa la FIEL. |
+
+  Ver la tabla completa en `Sat.Cfdi.Descarga.Masiva`.
+
+  ### Errores (`{:error, reason}`)
+
+  A nivel cliente: `{:missing_option, :credential}`, `{:http_error, status, body}`,
+  `{:network_error, reason}`, `{:soap_fault, code, string}`,
+  `{:parse_error, :missing_fields, body}`.
+
+  ## Reglas del SAT que provocan rechazo
+
+    * **Límite de por vida**: máximo **2** solicitudes con los MISMOS parámetros
+      (mismo RFC + mismo rango). La 3.ª idéntica devuelve `"5002"` permanente.
+    * **CFDI cancelados**: para `tipo_solicitud: :recibidos`/`:emitidos` con
+      descarga de XML, el SAT **solo entrega vigentes**. Envía
+      `estado_comprobante: :vigente`; con `:todos`/`:cancelado` devuelve `"301"`.
+      Si necesitas cancelados, usa `tipo_solicitud: :metadata`.
+
+  ## Semántica de `fecha_inicial` / `fecha_final` (¡ojo!)
+
+  El rango filtra por la **fecha de EMISIÓN del CFDI** (`fecha de emisión` en el
+  timbre), NO por "cuándo lo recibiste" ni por la fecha de certificación. Un CFDI
+  aparece si `FechaInicial <= fecha_emision <= FechaFinal`.
+
+  > Si esperabas facturas y la verificación regresa `NumeroCFDIs: 0` /
+  > `codigo_estado_solicitud: "5004"`, lo primero a revisar es el **rango de
+  > fechas**: que el año/mes sean correctos y que cubran la fecha de emisión de
+  > los CFDIs. Es la causa #1 de "recibí facturas pero dice 0". Verifica el rango
+  > real en el XML enviado (`<des:solicitud FechaInicial=... FechaFinal=...>`) y
+  > compáralo contra el portal del SAT (Consultar facturas) con el mismo RFC.
+
+  ## Respuesta cruda del SAT (HTTP 200)
+
+      <SolicitaDescargaRecibidosResponse xmlns="http://DescargaMasivaTerceros.sat.gob.mx">
+        <SolicitaDescargaRecibidosResult
+          IdSolicitud="790040c0-1135-4a30-bf03-9cb25f863396"
+          RfcSolicitante="MACA961017759" CodEstatus="5000" Mensaje="Solicitud Aceptada"/>
+      </SolicitaDescargaRecibidosResponse>
+
+  ## Ejemplo
+
+      case Solicitud.solicitar(token, params, credential: cred) do
+        {:ok, %{cod_estatus: "5000", id_solicitud: id}} -> {:ok, id}
+        {:ok, %{cod_estatus: "5002"}} -> {:error, :limite_agotado}
+        {:ok, %{cod_estatus: cod, mensaje: msg}} -> {:error, {:rechazada, cod, msg}}
+        {:error, reason} -> {:error, reason}
+      end
   """
   @spec solicitar(Token.t(), SolicitudParams.t(), keyword()) ::
           {:ok, SolicitudResult.t()} | {:error, term()}

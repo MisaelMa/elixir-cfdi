@@ -112,9 +112,33 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
          size: byte_size(content)
        }}
     else
-      :not_found -> {:error, {:parse_error, :missing_paquete, body}}
-      :error -> {:error, {:parse_error, :invalid_base64}}
-      other -> other
+      :not_found ->
+        # Sin nodo <Paquete>: el SAT rechazó la descarga. El detalle viene en el
+        # header `<respuesta CodEstatus=... Mensaje=.../>` (p. ej. 5008 máximo de
+        # descargas, 5007 paquete inexistente, 304/305 certificado).
+        case extract_respuesta_error(body) do
+          {cod, msg} -> {:error, {:descarga_rechazada, cod, msg}}
+          nil -> {:error, {:parse_error, :missing_paquete, body}}
+        end
+
+      :error ->
+        {:error, {:parse_error, :invalid_base64}}
+
+      other ->
+        other
+    end
+  end
+
+  # Extrae CodEstatus/Mensaje del header `respuesta` de la Descarga cuando no
+  # hubo paquete. Devuelve `nil` si no hay un código de error real.
+  defp extract_respuesta_error(body) do
+    cod = extract_attr(body, "respuesta", "CodEstatus")
+    msg = extract_attr(body, "respuesta", "Mensaje") || ""
+
+    if is_binary(cod) and cod not in ["", "5000"] do
+      {cod, msg}
+    else
+      nil
     end
   end
 
