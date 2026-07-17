@@ -214,7 +214,7 @@ defmodule CFDIFullTest do
     k = &key/2
 
     %{
-      k.("Comprobante", ns?) => %{
+      k.("Comprobante", ns?) => Map.merge(expected_namespaces(ns?), %{
         :Version => "4.0",
         :Serie => "F",
         :Folio => "100",
@@ -284,9 +284,14 @@ defmodule CFDIFullTest do
             ]
           }
         }
-      }
+      })
     }
   end
+
+  # `to_map` proyecta datos: las declaraciones de namespace son plomería de XML
+  # y no aparecen (viven sólo en el camino de `to_xml/2`, cubierto por
+  # `expected_xml_tree`). Ver CFDIToMapTest.
+  defp expected_namespaces(_ns?), do: %{}
 
   defp key(name, true), do: "cfdi:" <> name
   defp key(name, false), do: name
@@ -727,6 +732,8 @@ defmodule CFDIFullTest do
 
     {"cfdi:Comprobante",
      [
+       {"xmlns:cfdi", "http://www.sat.gob.mx/cfd/4"},
+       {"xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"},
        {"Version", "4.0"},
        {"Serie", "F"},
        {"Folio", "100"},

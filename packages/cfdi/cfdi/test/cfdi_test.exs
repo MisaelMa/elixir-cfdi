@@ -31,6 +31,9 @@ defmodule CFDITest do
     IO.puts("\n=== to_xml compact ===")
     IO.puts(CFDI.to_xml(cfdi))
 
+    # `to_map` proyecta DATOS: las declaraciones de namespace son plomería de
+    # XML y no aparecen (viven sólo en el camino de `to_xml/2`). Ver
+    # CFDIToMapTest.
     assert CFDI.to_map(cfdi) == %{
              "cfdi:Comprobante" => %{
                "cfdi:Emisor" => %{

@@ -8,6 +8,7 @@ defmodule CFDI do
   """
 
   alias Cfdi.Comprobante
+  alias Cfdi.Decoder
   alias Cfdi.Transform.Transform
   alias Sat.Certificados.{Certificate, Credential, PrivateKey}
 
@@ -20,6 +21,139 @@ defmodule CFDI do
 
   @spec new(Comprobante.t()) :: t()
   def new(%Comprobante{} = comprobante), do: %__MODULE__{comprobante: comprobante}
+
+  @doc """
+  Reconstruye un `%CFDI{}` completo a partir de un XML.
+
+  Camino inverso de `to_xml/2`: devuelve el comprobante con todo lo que traía
+  el documento —emisor, receptor, información global, conceptos con sus
+  impuestos y complementos de concepto, impuestos globales, CFDI relacionados
+  y complementos— como structs tipados, listo para inspeccionar o modificar.
+
+      {:ok, cfdi} = CFDI.from_xml(xml)
+      cfdi.comprobante."Total"
+      cfdi.comprobante |> Map.get(:"cfdi:Emisor") |> Map.get(:Rfc)
+
+  Los complementos se resuelven por la URI de su namespace contra
+  `Cfdi.Complementos.Registry`. Uno desconocido no se descarta: cae al struct
+  genérico `Cfdi.Complementos.Complemento`, preservando su carga útil.
+
+  ## Cuidado: un CFDI timbrado es inmutable
+
+  `from_xml/2` preserva `Sello`, `Certificado`, `NoCertificado` y el
+  `TimbreFiscalDigital` tal como venían — `to_xml/2` los devuelve intactos.
+
+  Pero **modificar un comprobante timbrado invalida su sello**: la cadena
+  original deja de coincidir. Fiscalmente eso no es "editar" una factura, es
+  emitir otra: hay que volver a sellar (`sellar/3`) y re-timbrar, lo que
+  produce un folio fiscal nuevo. Usá `timbrado?/1` antes de tocar nada.
+
+  ## Errores
+
+    * `{:error, {:malformed_xml, reason}}` — el XML no parsea
+    * `{:error, {:unexpected_root, name}}` — la raíz no es `cfdi:Comprobante`
+  """
+  @spec from_xml(String.t(), keyword()) :: {:ok, t()} | {:error, Decoder.reason()}
+  def from_xml(xml, opts \\ []) when is_binary(xml) and is_list(opts) do
+    case Decoder.decode(xml) do
+      {:ok, comprobante} -> {:ok, %__MODULE__{comprobante: comprobante}}
+      {:error, _} = error -> error
+    end
+  end
+
+  @doc """
+  Igual que `from_xml/2` pero leyendo desde disco.
+
+  Agrega `{:error, {:file_error, posix}}` a los errores posibles.
+  """
+  @spec from_file(Path.t(), keyword()) ::
+          {:ok, t()} | {:error, Decoder.reason() | {:file_error, File.posix()}}
+  def from_file(path, opts \\ []) when is_binary(path) and is_list(opts) do
+    case File.read(path) do
+      {:ok, xml} -> from_xml(xml, opts)
+      {:error, reason} -> {:error, {:file_error, reason}}
+    end
+  end
+
+  @doc """
+  Igual que `from_xml/2` pero devuelve el `%CFDI{}` directo o levanta.
+  """
+  @spec from_xml!(String.t(), keyword()) :: t()
+  def from_xml!(xml, opts \\ []) do
+    case from_xml(xml, opts) do
+      {:ok, cfdi} -> cfdi
+      {:error, reason} -> raise ArgumentError, "no se pudo decodificar el CFDI: #{inspect(reason)}"
+    end
+  end
+
+  @doc """
+  Igual que `from_file/2` pero devuelve el `%CFDI{}` directo o levanta.
+  """
+  @spec from_file!(Path.t(), keyword()) :: t()
+  def from_file!(path, opts \\ []) do
+    case from_file(path, opts) do
+      {:ok, cfdi} -> cfdi
+      {:error, reason} -> raise ArgumentError, "no se pudo leer el CFDI: #{inspect(reason)}"
+    end
+  end
+
+  @doc """
+  ¿El comprobante trae Timbre Fiscal Digital?
+
+  Un CFDI timbrado ya fue certificado por un PAC: su `Sello` y su UUID sólo
+  son válidos para el contenido exacto que se timbró. Modificar el contenido
+  lo invalida — los setters de contenido borran el `Sello` y el timbre. Ver
+  `from_xml/2` y `desellar/1`.
+  """
+  @spec timbrado?(t()) :: boolean()
+  def timbrado?(%__MODULE__{} = cfdi), do: not is_nil(tfd(cfdi))
+
+  @doc """
+  ¿El comprobante está sellado (tiene `Sello`)?
+
+  Sellado y timbrado son etapas distintas: primero el emisor sella con su CSD,
+  después el PAC timbra. Un CFDI recién sellado está `sellado?` pero todavía no
+  `timbrado?`.
+  """
+  @spec sellado?(t()) :: boolean()
+  def sellado?(%__MODULE__{comprobante: nil}), do: false
+  def sellado?(%__MODULE__{comprobante: comp}), do: not is_nil(comp."Sello")
+
+  @doc """
+  Invalida el sellado del documento: borra el `Sello` y el Timbre Fiscal
+  Digital, dejándolo listo para volver a sellar.
+
+  Atajo de `Cfdi.Comprobante.desellar/1` al nivel del `%CFDI{}`. Ver ahí
+  cuándo hace falta llamarlo a mano.
+  """
+  @spec desellar(t()) :: t()
+  def desellar(%__MODULE__{comprobante: nil} = cfdi), do: cfdi
+
+  def desellar(%__MODULE__{comprobante: comp} = cfdi),
+    do: %{cfdi | comprobante: Comprobante.desellar(comp)}
+
+  @doc """
+  Folio fiscal (UUID) del timbre, o `nil` si el comprobante no está timbrado.
+  """
+  @spec uuid(t()) :: String.t() | nil
+  def uuid(%__MODULE__{} = cfdi) do
+    case tfd(cfdi) do
+      nil -> nil
+      %{data: data} when is_map(data) -> Map.get(data, :UUID)
+      _ -> nil
+    end
+  end
+
+  defp tfd(%__MODULE__{comprobante: nil}), do: nil
+
+  defp tfd(%__MODULE__{comprobante: comprobante}) do
+    (Map.get(comprobante, :"cfdi:Complementos") || [])
+    |> Enum.flat_map(fn
+      %Cfdi.Complemento{children: children} -> children || []
+      _ -> []
+    end)
+    |> Enum.find(&is_struct(&1, Cfdi.Complementos.Tfd))
+  end
 
   @doc """
   Asocia certificado y número de certificado al comprobante.
@@ -160,7 +294,13 @@ defmodule CFDI do
   def cadena_original(%__MODULE__{config: cfg}), do: Map.get(cfg, :cadena_original)
 
   @doc """
-  Proyecta el CFDI a un mapa.
+  Proyecta el CFDI a un mapa de **datos**.
+
+  Las declaraciones de namespace (`xmlns:*`) y el `xsi:schemaLocation` NO
+  aparecen: son plomería para reconstruir el XML, no datos del comprobante, y
+  viven sólo en el camino de `to_xml/2`. El mapa trae emisor, receptor,
+  conceptos, impuestos, sello, complementos… sin ruido de XML. Lo mismo aplica
+  al JSON de `to_json/2`, que se arma sobre este mapa.
 
   Opciones:
     * `:ns` — `true` (default) incluye el prefijo `cfdi:` en los nombres de
@@ -202,7 +342,13 @@ defmodule CFDI do
 
   @spec to_map(t(), keyword()) :: map()
   def to_map(%__MODULE__{} = cfdi, opts) when is_list(opts) do
-    base = to_internal_map(cfdi, opts)
+    # `to_map` proyecta DATOS. Las declaraciones de namespace (`xmlns:*`,
+    # `xsi:schemaLocation`) y el orden (`:__order__`) son metadata para
+    # reconstruir el XML, no datos del CFDI: viven sólo en `to_internal_map/2`
+    # (el camino de `to_xml/2`, que sí los necesita) y se limpian acá. Así el
+    # mapa —y el JSON que sale de él— trae emisor, receptor, conceptos, sello,
+    # complementos… sin plomería de XML.
+    base = cfdi |> to_internal_map(opts) |> strip_xml_meta()
 
     if Keyword.get(opts, :ns, true) do
       base
@@ -210,6 +356,32 @@ defmodule CFDI do
       keys_mode = Keyword.get(opts, :keys, :string)
       case_mode = Keyword.get(opts, :case, :as_is)
       transform_keys(base, key_transformer(keys_mode, case_mode))
+    end
+  end
+
+  defp strip_xml_meta(map) when is_map(map) do
+    map
+    |> Enum.reject(fn {k, _} -> xml_meta_key?(k) end)
+    |> Map.new(fn {k, v} -> {k, strip_xml_meta(v)} end)
+  end
+
+  defp strip_xml_meta(list) when is_list(list), do: Enum.map(list, &strip_xml_meta/1)
+  defp strip_xml_meta(other), do: other
+
+  # Llaves que son metadata de reconstrucción, no datos: el orden interno, las
+  # declaraciones de namespace (cualquier prefijo) y el schemaLocation (con el
+  # prefijo que sea). Se comparan como string para cubrir llaves átomo y string
+  # por igual.
+  defp xml_meta_key?(k) do
+    s = to_string(k)
+
+    cond do
+      s == "__order__" -> true
+      s == "xmlns" -> true
+      String.starts_with?(s, "xmlns:") -> true
+      s == "schemaLocation" -> true
+      String.ends_with?(s, ":schemaLocation") -> true
+      true -> false
     end
   end
 
@@ -365,13 +537,17 @@ defmodule CFDI do
   # Construye una tupla de `XmlBuilder.element/3` separando atributos (llaves
   # átomo) de elementos hijos (llaves string) y ordenando según el tag padre.
   defp to_element(tag, body) when is_binary(tag) and is_map(body) do
+    # `:__order__` es metadata de orden, no un atributo: se saca antes de
+    # separar atributos de hijos. Ver `sort_children/3`.
+    {orden_explicito, body} = Map.pop(body, :__order__)
+
     {attr_pairs, child_pairs} = Enum.split_with(body, fn {k, _} -> is_atom(k) end)
 
     attrs = Map.new(attr_pairs, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
 
     kids =
       child_pairs
-      |> sort_children(tag)
+      |> sort_children(tag, orden_explicito)
       |> Enum.flat_map(&render_child/1)
 
     XmlBuilder.element(tag, attrs, kids)
@@ -388,8 +564,24 @@ defmodule CFDI do
 
   defp render_child({tag, value}), do: [to_element(tag, value)]
 
-  defp sort_children(pairs, parent_tag) do
-    case Map.get(@child_order, parent_tag) do
+  # El SAT declara los hijos con `<xs:sequence>`: el orden es parte del
+  # contrato y un documento desordenado se rechaza en validación de esquema.
+  # Un mapa no lo puede expresar (itera por término, o sea alfabético), así que
+  # el orden viene de tres fuentes, de más específica a más general:
+  #
+  #   1. `:__order__` — orden explícito del documento de origen, que pone
+  #      `Cfdi.Decoder`. Es el único que sabe de esquemas ajenos (addendas).
+  #   2. `@child_order` — los elementos propios de `cfdi:`.
+  #   3. `Cfdi.Complementos.ChildOrder` — catálogo generado desde los XSLT
+  #      oficiales del SAT, para complementos armados a mano.
+  #
+  # Sin ninguna de las tres, se respeta el orden del mapa.
+  defp sort_children(pairs, parent_tag, orden_explicito) do
+    order =
+      orden_explicito || Map.get(@child_order, parent_tag) ||
+        Cfdi.Complementos.ChildOrder.for_tag(parent_tag)
+
+    case order do
       nil ->
         pairs
 

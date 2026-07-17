@@ -3,6 +3,7 @@ defmodule Cfdi.Comprobante do
 
   use Cfdi.Xml.Element, tag: "cfdi:Comprobante", accepts_children: true
   alias Cfdi.{Concepto, Complemento, Relacionado, Impuestos, Emisor, Receptor, InformacionGlobal}
+  alias Cfdi.Complementos.Tfd
   xmlns(:cfdi, "http://www.sat.gob.mx/cfd/4")
   xmlns(:xsi, "http://www.w3.org/2001/XMLSchema-instance")
 
@@ -33,6 +34,7 @@ defmodule Cfdi.Comprobante do
   child(:"cfdi:Conceptos", :list)
   child(:"cfdi:Complementos", :list)
   child(:"cfdi:CfdiRelacionados", :list)
+  child(:"cfdi:Addenda", :map)
   child(:xmlns, :list)
   child(:schema_location, :string)
 
@@ -53,7 +55,7 @@ defmodule Cfdi.Comprobante do
 
   def add_concepto(c, %Concepto{} = concepto) do
     list = Map.get(c, :"cfdi:Conceptos") || []
-    Map.put(c, :"cfdi:Conceptos", list ++ [concepto])
+    c |> invalidar() |> Map.put(:"cfdi:Conceptos", list ++ [concepto])
   end
 
   def add_concepto(c, data) when is_map(data) do
@@ -62,7 +64,7 @@ defmodule Cfdi.Comprobante do
 
   def add_complemento(c, %Complemento{} = complemento) do
     list = Map.get(c, :"cfdi:Complementos") || []
-    Map.put(c, :"cfdi:Complementos", list ++ [complemento])
+    c |> invalidar() |> Map.put(:"cfdi:Complementos", list ++ [complemento])
   end
 
   def add_complemento(c, data) when is_map(data) do
@@ -71,7 +73,7 @@ defmodule Cfdi.Comprobante do
 
   def add_relacionado(c, %Relacionado{} = relacionado) do
     list = Map.get(c, :"cfdi:CfdiRelacionados") || []
-    Map.put(c, :"cfdi:CfdiRelacionados", list ++ [relacionado])
+    c |> invalidar() |> Map.put(:"cfdi:CfdiRelacionados", list ++ [relacionado])
   end
 
   def add_relacionado(c, data) when is_map(data) do
@@ -79,7 +81,7 @@ defmodule Cfdi.Comprobante do
   end
 
   def add_impuesto(c, %Impuestos{} = impuesto) do
-    Map.put(c, :"cfdi:Impuestos", impuesto)
+    c |> invalidar() |> Map.put(:"cfdi:Impuestos", impuesto)
   end
 
   def add_impuesto(c, data) when is_map(data) do
@@ -87,7 +89,7 @@ defmodule Cfdi.Comprobante do
   end
 
   def add_emisor(c, %Emisor{} = emisor) do
-    Map.put(c, :"cfdi:Emisor", emisor)
+    c |> invalidar() |> Map.put(:"cfdi:Emisor", emisor)
   end
 
   def add_emisor(c, data) when is_map(data) do
@@ -95,7 +97,7 @@ defmodule Cfdi.Comprobante do
   end
 
   def add_receptor(c, %Receptor{} = receptor) do
-    Map.put(c, :"cfdi:Receptor", receptor)
+    c |> invalidar() |> Map.put(:"cfdi:Receptor", receptor)
   end
 
   def add_receptor(c, data) when is_map(data) do
@@ -103,11 +105,45 @@ defmodule Cfdi.Comprobante do
   end
 
   def add_informacion_global(c, %InformacionGlobal{} = informacion_global) do
-    Map.put(c, :"cfdi:InformacionGlobal", informacion_global)
+    c |> invalidar() |> Map.put(:"cfdi:InformacionGlobal", informacion_global)
   end
 
   def add_informacion_global(c, data) when is_map(data) do
     add_informacion_global(c, struct(InformacionGlobal, data))
+  end
+
+  @doc """
+  Establece la `cfdi:Addenda` — extensiones privadas del contribuyente.
+
+  El XSD del SAT la declara como `<xs:any maxOccurs="unbounded"/>`: contenido
+  arbitrario que el SAT no valida ni interpreta. Por eso la carga es un mapa
+  opaco con la misma convención que el resto del árbol:
+
+    * llave **átomo** (`:numero`) → atributo XML
+    * llave **string** (`"proveedor:Pedido"`) → elemento hijo
+
+  Ejemplo:
+
+      Comprobante.set_addenda(comprobante, %{
+        "proveedor:Pedido" => %{
+          :"xmlns:proveedor" => "http://ejemplo.com/proveedor",
+          :numero => "OC-4471",
+          "proveedor:Comentarios" => "Entregar en almacén 3"
+        }
+      })
+
+  Se emite como último hijo del comprobante, según el Anexo 20.
+
+  ## La addenda no entra en la cadena original
+
+  El XSLT oficial no la procesa, así que agregarla o cambiarla **no invalida
+  el sello**: es lo único que se puede tocar en un CFDI ya timbrado. Pasar
+  `nil` la elimina.
+  """
+  def set_addenda(c, nil), do: Map.put(c, :"cfdi:Addenda", nil)
+
+  def set_addenda(c, addenda) when is_map(addenda) do
+    Map.put(c, :"cfdi:Addenda", addenda)
   end
 
   def set_certificado(c, certificado) when is_binary(certificado) do
@@ -121,6 +157,61 @@ defmodule Cfdi.Comprobante do
   def set_sello(c, sello) when is_binary(sello) do
     %{c | Sello: sello}
   end
+
+  @doc """
+  Invalida el sellado: borra el `Sello` y elimina el Timbre Fiscal Digital.
+
+  Un CFDI timbrado es fiscalmente inmutable: su `Sello` y su timbre sólo son
+  válidos para el contenido exacto que se selló. Los setters de contenido
+  (`add_emisor/2`, `add_concepto/2`, …) llaman a esto solos, así que rara vez
+  hace falta invocarlo a mano.
+
+  Se necesita cuando modificás un atributo con la sintaxis de struct
+  (`%{comp | Total: "…"}`), que no pasa por ningún setter y la librería no
+  puede interceptar:
+
+      comp = %{comp | Total: "999.00"} |> Comprobante.desellar()
+
+  Después hay que volver a sellar (y re-timbrar) para tener un CFDI válido.
+  No toca `Certificado`/`NoCertificado` — el re-sellado usa la misma
+  credencial. Tampoco toca la `cfdi:Addenda`, que no entra en la cadena
+  original.
+  """
+  @spec desellar(t()) :: t()
+  def desellar(c) when is_struct(c, __MODULE__), do: invalidar(c)
+
+  # Núcleo de la invalidación: sin `Sello` y sin TFD.
+  #
+  # Sobre un borrador sin sellar es un no-op efectivo (Sello ya es nil, no hay
+  # TFD que quitar), así que es seguro llamarlo desde cada setter sin pensar en
+  # si el comprobante ya venía timbrado.
+  defp invalidar(c) do
+    %{c | Sello: nil} |> quitar_tfd()
+  end
+
+  # Saca el `%Tfd{}` de cada `%Complemento{}`, conservando los demás
+  # complementos (un PPD trae Pago20 + TFD: al invalidar, Pago20 sigue siendo
+  # contenido válido, sólo el timbre muere). Los wrappers que quedan vacíos se
+  # descartan.
+  defp quitar_tfd(c) do
+    case Map.get(c, :"cfdi:Complementos") do
+      nil ->
+        c
+
+      complementos ->
+        limpios =
+          complementos
+          |> Enum.map(fn %Complemento{children: children} = wrapper ->
+            %{wrapper | children: Enum.reject(children || [], &is_struct(&1, Tfd))}
+          end)
+          |> Enum.reject(fn %Complemento{children: children} -> children == [] end)
+
+        Map.put(c, :"cfdi:Complementos", empty_to_nil(limpios))
+    end
+  end
+
+  defp empty_to_nil([]), do: nil
+  defp empty_to_nil(list), do: list
 
   # Override: el macro expondría `:xmlns` y `:schema_location` como hijos,
   # pero son metadata del documento — no aparecen en la proyección a mapa.
@@ -142,6 +233,44 @@ defmodule Cfdi.Comprobante do
     |> Cfdi.Xml.Element.__to_map__(__MODULE__, opts)
     |> wrap_conceptos(ns?)
     |> inject_complemento(complementos_list, ns?)
+    |> inject_namespaces(c, ns?)
+  end
+
+  # Emite las declaraciones `xmlns:*` y el `xsi:schemaLocation` como atributos
+  # de la raíz. Sin esto el XML no es namespace-well-formed y un PAC lo rechaza.
+  #
+  # La fuente son los campos `xmlns` / `schema_location` de la struct, que
+  # `Cfdi.Decoder` llena con lo que traía el XML de origen — así el ida y vuelta
+  # es fiel incluso cuando el documento original no declaraba nada. Para un
+  # comprobante armado a mano (campo en `nil`) caemos a los namespaces que
+  # declara el macro.
+  #
+  # Con `ns: false` no se emiten: esa proyección pide explícitamente una vista
+  # plana sin información de namespace.
+  defp inject_namespaces(map, _c, false), do: map
+
+  defp inject_namespaces(map, c, true) do
+    case Map.get(map, "cfdi:Comprobante") do
+      nil -> map
+      body -> Map.put(map, "cfdi:Comprobante", Map.merge(namespace_attrs(c), body))
+    end
+  end
+
+  defp namespace_attrs(c) do
+    declaraciones = c.xmlns || __xml__(:namespaces)
+    attrs = Map.new(declaraciones, fn {prefix, uri} -> {ns_attr_key(prefix), uri} end)
+
+    case c.schema_location do
+      nil -> attrs
+      loc -> Map.put(attrs, :"xsi:schemaLocation", loc)
+    end
+  end
+
+  defp ns_attr_key(prefix) do
+    case to_string(prefix) do
+      "xmlns" -> :xmlns
+      p -> :"xmlns:#{p}"
+    end
   end
 
   defp wrap_conceptos(map, ns?) do
