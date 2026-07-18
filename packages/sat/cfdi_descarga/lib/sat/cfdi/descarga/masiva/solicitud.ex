@@ -70,10 +70,16 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
 
     * **Límite de por vida**: máximo **2** solicitudes con los MISMOS parámetros
       (mismo RFC + mismo rango). La 3.ª idéntica devuelve `"5002"` permanente.
-    * **CFDI cancelados**: para `tipo_solicitud: :recibidos`/`:emitidos` con
-      descarga de XML, el SAT **solo entrega vigentes**. Envía
-      `estado_comprobante: :vigente`; con `:todos`/`:cancelado` devuelve `"301"`.
-      Si necesitas cancelados, usa `tipo_solicitud: :metadata`.
+    * **CFDI cancelados**: para `tipo_solicitud: :recibidos`/`:emitidos`/`:folio`
+      con descarga de XML, el SAT **solo entrega vigentes**. Con `:todos`/
+      `:cancelado` devuelve `"301"`. Si necesitas cancelados, usa
+      `tipo_solicitud: :metadata`.
+
+      > **Red de seguridad (desde 1.5.8):** si el tipo produce `TipoSolicitud="CFDI"`
+      > y NO especificas `estado_comprobante`, la librería lo fuerza a `:vigente`
+      > automáticamente (igual que phpcfdi), para evitar el `301`. Si lo pones
+      > explícito (`:todos`/`:cancelado`) se respeta tu valor. Para `:metadata`
+      > no se toca.
 
   ## Semántica de `fecha_inicial` / `fecha_final` (¡ojo!)
 
@@ -108,6 +114,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
   @spec solicitar(Token.t(), SolicitudParams.t(), keyword()) ::
           {:ok, SolicitudResult.t()} | {:error, term()}
   def solicitar(%Token{} = token, %SolicitudParams{} = params, opts \\ []) do
+    params = normalizar_params(params)
     operation = soap_operation(params.tipo_solicitud)
     soap_action = @soap_action_base <> operation
 
@@ -147,4 +154,21 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
       :error -> {:error, {:missing_option, :credential}}
     end
   end
+
+  @cfdi_tipos [:emitidos, :recibidos, :folio, :cfdi]
+
+  @doc false
+  # Red de seguridad: en descargas de CFDI (XML) el SAT SOLO entrega vigentes; si
+  # no se declara EstadoComprobante, el SAT asume "Todos" y rechaza con 301 ("No
+  # se permite la descarga de xml que se encuentren cancelados"). Igual que
+  # phpcfdi, forzamos :vigente cuando el tipo produce TipoSolicitud="CFDI" y el
+  # llamador no especificó estado. Para :metadata (que sí incluye cancelados) NO
+  # se toca. Un estado explícito (:todos/:cancelado) tampoco se toca.
+  @spec normalizar_params(SolicitudParams.t()) :: SolicitudParams.t()
+  def normalizar_params(%SolicitudParams{estado_comprobante: nil, tipo_solicitud: t} = p)
+      when t in @cfdi_tipos do
+    %{p | estado_comprobante: :vigente}
+  end
+
+  def normalizar_params(%SolicitudParams{} = p), do: p
 end

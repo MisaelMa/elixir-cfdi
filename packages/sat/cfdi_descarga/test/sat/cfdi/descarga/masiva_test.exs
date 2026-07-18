@@ -84,6 +84,27 @@ defmodule Sat.Cfdi.Descarga.MasivaTest do
     end
   end
 
+  describe "normalizar_params (red de seguridad EstadoComprobante)" do
+    test "fuerza :vigente en CFDI cuando no se especifica estado" do
+      for tipo <- [:emitidos, :recibidos, :folio, :cfdi] do
+        params = %SolicitudParams{rfc_solicitante: "AAA010101AAA", tipo_solicitud: tipo}
+        assert %{estado_comprobante: :vigente} = Solicitud.normalizar_params(params)
+      end
+    end
+
+    test "respeta el estado explícito del llamador" do
+      for estado <- [:vigente, :cancelado, :todos] do
+        params = %SolicitudParams{tipo_solicitud: :recibidos, estado_comprobante: estado}
+        assert %{estado_comprobante: ^estado} = Solicitud.normalizar_params(params)
+      end
+    end
+
+    test "NO fuerza estado en :metadata (permite cancelados)" do
+      params = %SolicitudParams{tipo_solicitud: :metadata}
+      assert %{estado_comprobante: nil} = Solicitud.normalizar_params(params)
+    end
+  end
+
   describe "Reader" do
     test "stream_cfdis con paquete vacio retorna error de zip" do
       paquete = %PaqueteStruct{id: "PKG-X", content: <<>>, size: 0}
