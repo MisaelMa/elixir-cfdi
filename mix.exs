@@ -24,7 +24,7 @@ defmodule SAT_CFDI.MixProject do
       browser_apps() ++
       renapo_apps() ++
       [
-        {:releaser, "~> 0.0.8", only: :dev, runtime: false}
+        {:releaser, "~> 0.0.9", only: :dev, runtime: false}
       ]
   end
 
