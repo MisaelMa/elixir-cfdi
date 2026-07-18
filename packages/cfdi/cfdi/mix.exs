@@ -4,7 +4,7 @@ defmodule CFDI.MixProject do
   def project do
     [
       app: :cfdi,
-      version: "4.0.4",
+      version: "4.0.5",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",
