@@ -47,6 +47,47 @@ defmodule CFDI.CertificarSellarTest do
       assert c.config[:credential] == cred
     end
 
+    test "formato_no_certificado: :sat es el default (número de 20 dígitos)" do
+      cred = load_credential!()
+
+      {:ok, default_c} =
+        build_comprobante() |> CFDI.new() |> CFDI.certificar(cred)
+
+      {:ok, sat_c} =
+        build_comprobante() |> CFDI.new() |> CFDI.certificar(cred, formato_no_certificado: :sat)
+
+      assert Map.fetch!(sat_c.comprobante, :NoCertificado) == Credential.no_certificado(cred)
+      assert Map.fetch!(default_c.comprobante, :NoCertificado) ==
+               Map.fetch!(sat_c.comprobante, :NoCertificado)
+    end
+
+    test "formato_no_certificado: :serie escribe el serial hexadecimal" do
+      cred = load_credential!()
+
+      {:ok, c} =
+        build_comprobante()
+        |> CFDI.new()
+        |> CFDI.certificar(cred, formato_no_certificado: :serie)
+
+      assert Map.fetch!(c.comprobante, :NoCertificado) == Credential.serial_number(cred)
+      # la variante ya no queda a medias: también setea Certificado y guarda la credencial
+      assert Map.fetch!(c.comprobante, :Certificado) == Certificate.to_base64(cred.certificate)
+      assert c.config[:credential] == cred
+    end
+
+    test "formato_no_certificado: :serie difiere del formato SAT" do
+      cred = load_credential!()
+
+      {:ok, sat_c} =
+        build_comprobante() |> CFDI.new() |> CFDI.certificar(cred, formato_no_certificado: :sat)
+
+      {:ok, serie_c} =
+        build_comprobante() |> CFDI.new() |> CFDI.certificar(cred, formato_no_certificado: :serie)
+
+      refute Map.fetch!(sat_c.comprobante, :NoCertificado) ==
+               Map.fetch!(serie_c.comprobante, :NoCertificado)
+    end
+
     test "rechaza un map plano (forma legacy)" do
       c = CFDI.new(build_comprobante())
 

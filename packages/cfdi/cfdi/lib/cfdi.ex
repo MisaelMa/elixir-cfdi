@@ -81,8 +81,11 @@ defmodule CFDI do
   @spec from_xml!(String.t(), keyword()) :: t()
   def from_xml!(xml, opts \\ []) do
     case from_xml(xml, opts) do
-      {:ok, cfdi} -> cfdi
-      {:error, reason} -> raise ArgumentError, "no se pudo decodificar el CFDI: #{inspect(reason)}"
+      {:ok, cfdi} ->
+        cfdi
+
+      {:error, reason} ->
+        raise ArgumentError, "no se pudo decodificar el CFDI: #{inspect(reason)}"
     end
   end
 
@@ -157,19 +160,37 @@ defmodule CFDI do
 
   @doc """
   Asocia certificado y número de certificado al comprobante.
+
+  La opción `:formato_no_certificado` controla qué valor se escribe en
+  `NoCertificado`:
+
+    * `:sat` (default) — número de 20 dígitos que exige el anexo 20
+      (`Credential.no_certificado/1`). Es el formato válido para timbrado.
+    * `:serie` — número de serie del certificado en hexadecimal
+      (`Credential.serial_number/1`). Variante para consumidores que
+      requieran el serial crudo; **no** es válido en el atributo `NoCertificado`
+      de un CFDI para el SAT.
   """
-  @spec certificar(t(), Credential.t()) :: {:ok, t()} | {:error, atom()}
-  def certificar(%__MODULE__{comprobante: comp} = c, %Credential{} = cred) do
+  @spec certificar(t(), Credential.t(), keyword()) :: {:ok, t()} | {:error, atom()}
+  def certificar(cfdi, cred, opts \\ [])
+
+  def certificar(%__MODULE__{comprobante: comp} = c, %Credential{} = cred, opts) do
+    no_certificado =
+      case Keyword.get(opts, :formato_no_certificado, :sat) do
+        :sat -> Credential.no_certificado(cred)
+        :serie -> Credential.serial_number(cred)
+      end
+
     updated =
       struct(comp, %{
         Certificado: Certificate.to_base64(cred.certificate),
-        NoCertificado: Credential.no_certificado(cred)
+        NoCertificado: no_certificado
       })
 
     {:ok, %{c | comprobante: updated, config: Map.put(c.config, :credential, cred)}}
   end
 
-  def certificar(%__MODULE__{}, _), do: {:error, :credential_must_be_credential_struct}
+  def certificar(%__MODULE__{}, _, _), do: {:error, :credential_must_be_credential_struct}
 
   @doc """
   Asocia la ruta del XSLT que generará la cadena original.
