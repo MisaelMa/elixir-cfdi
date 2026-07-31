@@ -254,8 +254,7 @@ defmodule Clir.Openssl.X509 do
       end
 
     <<mo::binary-size(2), d::binary-size(2), hh::binary-size(2), mm::binary-size(2),
-      ss::binary-size(2),
-      _z::binary>> =
+      ss::binary-size(2), _z::binary>> =
       rest
 
     DateTime.new!(

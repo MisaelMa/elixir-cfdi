@@ -34,7 +34,11 @@ defmodule Sat.CsfTest do
     test "extrae actividades económicas como una lista de structs ordenada", %{csf: csf} do
       assert [%ActividadEconomica{orden: 1} | _] = csf.actividades_economicas
       assert Enum.all?(csf.actividades_economicas, &(&1.orden in 1..10))
-      assert Enum.all?(csf.actividades_economicas, &(is_integer(&1.porcentaje) and &1.porcentaje in 0..100))
+
+      assert Enum.all?(
+               csf.actividades_economicas,
+               &(is_integer(&1.porcentaje) and &1.porcentaje in 0..100)
+             )
 
       first = hd(csf.actividades_economicas)
       assert String.match?(first.fecha_inicio, ~r/^\d{2}\/\d{2}\/\d{4}$/)

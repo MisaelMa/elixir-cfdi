@@ -150,7 +150,8 @@ defmodule Sat.Cfdi.Descarga.Masiva.Pipeline do
 
       {:ok, paquetes}
     else
-      nil -> {:error, {:solicitud_sin_id, "el SAT no devolvio IdSolicitud"}}
+      nil ->
+        {:error, {:solicitud_sin_id, "el SAT no devolvio IdSolicitud"}}
 
       {:ok, %{cod_estatus: cod, mensaje: msg}} ->
         {:error, {:solicitud_rechazada, cod, msg}}

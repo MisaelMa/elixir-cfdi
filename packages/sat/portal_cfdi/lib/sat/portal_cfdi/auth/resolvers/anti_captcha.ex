@@ -42,6 +42,7 @@ defmodule Sat.PortalCfdi.Auth.Resolvers.AntiCaptcha do
 
   defp create_task(image, key, opts) do
     base = Keyword.get(opts, :base_url, @default_base_url)
+
     body = %{
       "clientKey" => key,
       "task" => %{
@@ -78,7 +79,8 @@ defmodule Sat.PortalCfdi.Auth.Resolvers.AntiCaptcha do
 
   defp poll(base, body, interval, deadline) do
     case Req.post(base <> "/getTaskResult", json: body, retry: false) do
-      {:ok, %Req.Response{status: 200, body: %{"status" => "ready", "solution" => %{"text" => text}}}} ->
+      {:ok,
+       %Req.Response{status: 200, body: %{"status" => "ready", "solution" => %{"text" => text}}}} ->
         {:ok, text}
 
       {:ok, %Req.Response{status: 200, body: %{"status" => "processing"}}} ->

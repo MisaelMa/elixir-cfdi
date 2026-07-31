@@ -57,6 +57,7 @@ defmodule CFDI.CertificarSellarTest do
         build_comprobante() |> CFDI.new() |> CFDI.certificar(cred, formato_no_certificado: :sat)
 
       assert Map.fetch!(sat_c.comprobante, :NoCertificado) == Credential.no_certificado(cred)
+
       assert Map.fetch!(default_c.comprobante, :NoCertificado) ==
                Map.fetch!(sat_c.comprobante, :NoCertificado)
     end

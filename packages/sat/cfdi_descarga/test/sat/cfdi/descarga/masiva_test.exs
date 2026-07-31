@@ -112,7 +112,13 @@ defmodule Sat.Cfdi.Descarga.MasivaTest do
     end
 
     test "stream_cfdis filtra solo .xml de un ZIP real" do
-      zip = build_zip([{"factura1.xml", "<cfdi>1</cfdi>"}, {"factura2.xml", "<cfdi>2</cfdi>"}, {"readme.txt", "ignored"}])
+      zip =
+        build_zip([
+          {"factura1.xml", "<cfdi>1</cfdi>"},
+          {"factura2.xml", "<cfdi>2</cfdi>"},
+          {"readme.txt", "ignored"}
+        ])
+
       paquete = %PaqueteStruct{id: "PKG-1", content: zip, size: byte_size(zip)}
 
       {:ok, stream} = Reader.stream_cfdis(paquete)

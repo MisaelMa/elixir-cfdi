@@ -72,7 +72,8 @@ defmodule Sat.PortalCfdi.Internal.Consulta do
           {:ok, pagina(), SesionSAT.t()} | {:error, term()}
   def consultar_pagina(%SesionSAT{} = sesion, %{} = pagina_anterior, n, opts \\ [])
       when is_integer(n) and n > 0 do
-    target = pagination_event_target(pagina_anterior.raw_html) || "ctl00$MainContent$PageNavigation"
+    target =
+      pagination_event_target(pagina_anterior.raw_html) || "ctl00$MainContent$PageNavigation"
 
     body =
       pagina_anterior.hidden_fields
@@ -119,6 +120,7 @@ defmodule Sat.PortalCfdi.Internal.Consulta do
     case consultar(sesion, params, opts) do
       {:ok, pagina1, sesion} ->
         report = on_page.(pagina1, [])
+
         if report == :stop do
           {:ok, pagina1.results, pagina1, sesion}
         else
@@ -216,7 +218,16 @@ defmodule Sat.PortalCfdi.Internal.Consulta do
     cells = row |> Floki.find("td") |> Enum.map(&cell_text/1)
 
     case cells do
-      [uuid, rfc_emisor, nombre_emisor, rfc_receptor, nombre_receptor, fecha_emision, fecha_cert, total | rest]
+      [
+        uuid,
+        rfc_emisor,
+        nombre_emisor,
+        rfc_receptor,
+        nombre_receptor,
+        fecha_emision,
+        fecha_cert,
+        total | rest
+      ]
       when uuid != "" ->
         [efecto, estado] = pad(rest, 2, "")
 
@@ -245,7 +256,7 @@ defmodule Sat.PortalCfdi.Internal.Consulta do
   end
 
   defp pad(list, size, default) do
-    list ++ List.duplicate(default, max(0, size - length(list)))
+    (list ++ List.duplicate(default, max(0, size - length(list))))
     |> Enum.take(size)
   end
 
@@ -306,10 +317,20 @@ defmodule Sat.PortalCfdi.Internal.Consulta do
   @spec pagination_has_next?(String.t(), pos_integer(), pos_integer() | :unknown) :: boolean()
   def pagination_has_next?(html, current, total) do
     cond do
-      is_integer(total) and current < total -> true
-      String.contains?(html, "Siguiente") and not String.contains?(html, "Siguiente disabled") -> true
-      Regex.match?(~r/__doPostBack\(['"][^'"]+(Page|Pagination)[^'"]*['"],\s*['"]Page\$Next/i, html) -> true
-      true -> false
+      is_integer(total) and current < total ->
+        true
+
+      String.contains?(html, "Siguiente") and not String.contains?(html, "Siguiente disabled") ->
+        true
+
+      Regex.match?(
+        ~r/__doPostBack\(['"][^'"]+(Page|Pagination)[^'"]*['"],\s*['"]Page\$Next/i,
+        html
+      ) ->
+        true
+
+      true ->
+        false
     end
   end
 
@@ -321,7 +342,10 @@ defmodule Sat.PortalCfdi.Internal.Consulta do
   def pagination_event_target(nil), do: nil
 
   def pagination_event_target(html) do
-    case Regex.run(~r/__doPostBack\(['"]([^'"]+(?:Pagination|PageNavigation|Pager)[^'"]*)['"]/i, html) do
+    case Regex.run(
+           ~r/__doPostBack\(['"]([^'"]+(?:Pagination|PageNavigation|Pager)[^'"]*)['"]/i,
+           html
+         ) do
       [_, target] -> String.replace(target, "$", "$")
       _ -> nil
     end

@@ -25,7 +25,7 @@ defmodule Cfdi.Csf.MixProject do
     [
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:ex_pdf, "~> 1.0.3"},
-      {:sat_catalogos, path: "../catalogos"},
+      {:sat_catalogos, path: "../catalogos"}
     ]
   end
 

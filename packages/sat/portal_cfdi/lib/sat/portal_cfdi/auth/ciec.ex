@@ -71,7 +71,11 @@ defmodule Sat.PortalCfdi.Auth.Ciec do
   end
 
   defp fetch_captcha_image(sesion, opts) do
-    case Http.get(sesion, @captcha_url <> "/captcha.jpg", Keyword.put(opts, :follow_redirects, false)) do
+    case Http.get(
+           sesion,
+           @captcha_url <> "/captcha.jpg",
+           Keyword.put(opts, :follow_redirects, false)
+         ) do
       {:ok, %{status: 200, body: body}, sesion} -> {:ok, body, sesion}
       {:ok, %{status: status}, _} -> {:error, {:captcha_fetch, status}}
       {:error, _} = e -> e
@@ -100,6 +104,7 @@ defmodule Sat.PortalCfdi.Auth.Ciec do
   end
 
   defp classify_login_response(%{status: 302}), do: :ok
+
   defp classify_login_response(%{status: 200, body: body}) do
     cond do
       String.contains?(body, "captchaCode") or String.contains?(body, "Codigo no valido") ->

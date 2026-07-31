@@ -31,7 +31,9 @@ defmodule Sat.PortalCfdi.Internal.ConsultaTest do
     end
 
     test "detecta __doPostBack Page$Next" do
-      html = ~s|<a href="javascript:__doPostBack('ctl00$MainContent$Pagination','Page$Next')">Siguiente</a>|
+      html =
+        ~s|<a href="javascript:__doPostBack('ctl00$MainContent$Pagination','Page$Next')">Siguiente</a>|
+
       assert Consulta.pagination_has_next?(html, 1, :unknown) == true
     end
   end

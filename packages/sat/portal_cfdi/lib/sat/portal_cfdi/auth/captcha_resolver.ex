@@ -66,6 +66,7 @@ defmodule Sat.PortalCfdi.Auth.CaptchaResolver do
 
       match?({mod, opts} when is_atom(mod) and is_list(opts), resolver) ->
         {mod, opts} = resolver
+
         cond do
           module_exports?(mod, :resolve, 2) -> mod.resolve(image, opts)
           module_exports?(mod, :resolve, 1) -> mod.resolve(image)

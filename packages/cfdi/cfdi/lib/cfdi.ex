@@ -20,7 +20,8 @@ defmodule CFDI do
         }
 
   @spec new(Comprobante.t()) :: t()
-  def new(%Comprobante{} = comprobante), do: %__MODULE__{comprobante: comprobante}
+  def new(%Comprobante{} = comprobante),
+    do: %__MODULE__{comprobante: Comprobante.ensure_base_namespaces(comprobante)}
 
   @doc """
   Reconstruye un `%CFDI{}` completo a partir de un XML.

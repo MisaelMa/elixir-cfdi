@@ -214,77 +214,78 @@ defmodule CFDIFullTest do
     k = &key/2
 
     %{
-      k.("Comprobante", ns?) => Map.merge(expected_namespaces(ns?), %{
-        :Version => "4.0",
-        :Serie => "F",
-        :Folio => "100",
-        :Fecha => "2026-04-23T10:00:00",
-        :FormaPago => "01",
-        :CondicionesDePago => "Contado",
-        :SubTotal => "1000.00",
-        :Descuento => "0.00",
-        :Moneda => "MXN",
-        :Total => "1060.00",
-        :TipoDeComprobante => "I",
-        :Exportacion => "01",
-        :MetodoPago => "PUE",
-        :LugarExpedicion => "06600",
-        k.("InformacionGlobal", ns?) => %{
-          Periodicidad: "01",
-          Meses: "01",
-          Año: "2026"
-        },
-        k.("CfdiRelacionados", ns?) => [
-          %{
-            :TipoRelacion => "04",
-            k.("CfdiRelacionado", ns?) => [
-              %{UUID: "11111111-1111-1111-1111-111111111111"},
-              %{UUID: "22222222-2222-2222-2222-222222222222"}
-            ]
-          }
-        ],
-        k.("Emisor", ns?) => %{
-          Rfc: "EKU9003173C9",
-          Nombre: "ESCUELA KEMPER URGATE",
-          RegimenFiscal: "603"
-        },
-        k.("Receptor", ns?) => %{
-          Rfc: "CACX7605101P8",
-          Nombre: "XOCHILT CASAS CHAVEZ",
-          UsoCFDI: "G03",
-          DomicilioFiscalReceptor: "36257",
-          RegimenFiscalReceptor: "612"
-        },
-        k.("Conceptos", ns?) => %{
-          k.("Concepto", ns?) => [concepto_body(ns?)]
-        },
-        k.("Impuestos", ns?) => %{
-          :TotalImpuestosTrasladados => "160.00",
-          :TotalImpuestosRetenidos => "100.00",
-          k.("Traslados", ns?) => %{
-            k.("Traslado", ns?) => [
-              %{
-                Base: "1000.00",
-                Impuesto: "002",
-                TipoFactor: "Tasa",
-                TasaOCuota: "0.160000",
-                Importe: "160.00"
-              }
-            ]
+      k.("Comprobante", ns?) =>
+        Map.merge(expected_namespaces(ns?), %{
+          :Version => "4.0",
+          :Serie => "F",
+          :Folio => "100",
+          :Fecha => "2026-04-23T10:00:00",
+          :FormaPago => "01",
+          :CondicionesDePago => "Contado",
+          :SubTotal => "1000.00",
+          :Descuento => "0.00",
+          :Moneda => "MXN",
+          :Total => "1060.00",
+          :TipoDeComprobante => "I",
+          :Exportacion => "01",
+          :MetodoPago => "PUE",
+          :LugarExpedicion => "06600",
+          k.("InformacionGlobal", ns?) => %{
+            Periodicidad: "01",
+            Meses: "01",
+            Año: "2026"
           },
-          k.("Retenciones", ns?) => %{
-            k.("Retencion", ns?) => [
-              %{
-                Base: "1000.00",
-                Impuesto: "001",
-                TipoFactor: "Tasa",
-                TasaOCuota: "0.100000",
-                Importe: "100.00"
-              }
-            ]
+          k.("CfdiRelacionados", ns?) => [
+            %{
+              :TipoRelacion => "04",
+              k.("CfdiRelacionado", ns?) => [
+                %{UUID: "11111111-1111-1111-1111-111111111111"},
+                %{UUID: "22222222-2222-2222-2222-222222222222"}
+              ]
+            }
+          ],
+          k.("Emisor", ns?) => %{
+            Rfc: "EKU9003173C9",
+            Nombre: "ESCUELA KEMPER URGATE",
+            RegimenFiscal: "603"
+          },
+          k.("Receptor", ns?) => %{
+            Rfc: "CACX7605101P8",
+            Nombre: "XOCHILT CASAS CHAVEZ",
+            UsoCFDI: "G03",
+            DomicilioFiscalReceptor: "36257",
+            RegimenFiscalReceptor: "612"
+          },
+          k.("Conceptos", ns?) => %{
+            k.("Concepto", ns?) => [concepto_body(ns?)]
+          },
+          k.("Impuestos", ns?) => %{
+            :TotalImpuestosTrasladados => "160.00",
+            :TotalImpuestosRetenidos => "100.00",
+            k.("Traslados", ns?) => %{
+              k.("Traslado", ns?) => [
+                %{
+                  Base: "1000.00",
+                  Impuesto: "002",
+                  TipoFactor: "Tasa",
+                  TasaOCuota: "0.160000",
+                  Importe: "160.00"
+                }
+              ]
+            },
+            k.("Retenciones", ns?) => %{
+              k.("Retencion", ns?) => [
+                %{
+                  Base: "1000.00",
+                  Impuesto: "001",
+                  TipoFactor: "Tasa",
+                  TasaOCuota: "0.100000",
+                  Importe: "100.00"
+                }
+              ]
+            }
           }
-        }
-      })
+        })
     }
   end
 
@@ -734,6 +735,11 @@ defmodule CFDIFullTest do
      [
        {"xmlns:cfdi", "http://www.sat.gob.mx/cfd/4"},
        {"xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"},
+       # el complemento iedu vive en un Concepto, pero su par sube a la raíz
+       {"xmlns:iedu", "http://www.sat.gob.mx/iedu"},
+       {"xsi:schemaLocation",
+        "http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd " <>
+          "http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd"},
        {"Version", "4.0"},
        {"Serie", "F"},
        {"Folio", "100"},

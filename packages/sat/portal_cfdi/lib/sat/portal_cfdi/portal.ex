@@ -63,7 +63,11 @@ defmodule Sat.PortalCfdi.Portal do
           {:ok, [CfdiConsultaResult.t()], SesionSAT.t()} | {:error, term()}
   def consultar_cfdis(sesion, params, opts \\ [])
 
-  def consultar_cfdis(%SesionSAT{authenticated: true} = sesion, %ConsultaCfdiParams{} = params, opts) do
+  def consultar_cfdis(
+        %SesionSAT{authenticated: true} = sesion,
+        %ConsultaCfdiParams{} = params,
+        opts
+      ) do
     case Consulta.consultar(sesion, params, opts) do
       {:ok, %{results: results}, sesion} -> {:ok, results, sesion}
       {:error, _} = e -> e
@@ -84,7 +88,11 @@ defmodule Sat.PortalCfdi.Portal do
           {:ok, Consulta.pagina(), SesionSAT.t()} | {:error, term()}
   def consultar_paginado(sesion, params, opts \\ [])
 
-  def consultar_paginado(%SesionSAT{authenticated: true} = sesion, %ConsultaCfdiParams{} = params, opts) do
+  def consultar_paginado(
+        %SesionSAT{authenticated: true} = sesion,
+        %ConsultaCfdiParams{} = params,
+        opts
+      ) do
     Consulta.consultar(sesion, params, opts)
   end
 
@@ -123,7 +131,11 @@ defmodule Sat.PortalCfdi.Portal do
           {:ok, [CfdiConsultaResult.t()], Consulta.pagina(), SesionSAT.t()} | {:error, term()}
   def consultar_todas_paginas(sesion, params, opts \\ [])
 
-  def consultar_todas_paginas(%SesionSAT{authenticated: true} = sesion, %ConsultaCfdiParams{} = params, opts) do
+  def consultar_todas_paginas(
+        %SesionSAT{authenticated: true} = sesion,
+        %ConsultaCfdiParams{} = params,
+        opts
+      ) do
     Consulta.consultar_todas(sesion, params, opts)
   end
 

@@ -24,6 +24,7 @@ defmodule Sat.Csf.Parser do
   """
 
   alias Pdf.Reader.Result, as: PdfResult
+
   alias Sat.Csf.{
     ActividadEconomica,
     Document,
@@ -91,14 +92,13 @@ defmodule Sat.Csf.Parser do
     if Map.has_key?(section_indexes, :identificacion) do
       {:ok,
        %Document{
-         identificacion: parse_identificacion(slice(lines, section_indexes, :identificacion, :domicilio)),
+         identificacion:
+           parse_identificacion(slice(lines, section_indexes, :identificacion, :domicilio)),
          domicilio: parse_domicilio(slice(lines, section_indexes, :domicilio, :actividades)),
          actividades_economicas:
            parse_actividades(slice(lines, section_indexes, :actividades, :regimenes)),
-         regimenes:
-           parse_regimenes(slice(lines, section_indexes, :regimenes, :obligaciones)),
-         obligaciones:
-           parse_obligaciones(slice(lines, section_indexes, :obligaciones, :fin))
+         regimenes: parse_regimenes(slice(lines, section_indexes, :regimenes, :obligaciones)),
+         obligaciones: parse_obligaciones(slice(lines, section_indexes, :obligaciones, :fin))
        }}
     else
       {:error, :not_a_csf}

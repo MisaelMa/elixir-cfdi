@@ -36,7 +36,7 @@ defmodule Cfdi.Comprobante do
   child(:"cfdi:CfdiRelacionados", :list)
   child(:"cfdi:Addenda", :map)
   child(:xmlns, :list)
-  child(:schema_location, :string)
+  child(:schema_location, :list)
 
   def xmlns() do
     [
@@ -45,30 +45,125 @@ defmodule Cfdi.Comprobante do
     ]
   end
 
-  def add_xmlns(c, xmlns) do
-    %{c | xmlns: xmlns}
+  @doc """
+  Declara un namespace en la raíz. Acepta una tupla `{prefijo, uri}` o una lista
+  de ellas. Deduplica por prefijo — declarar dos veces el mismo prefijo no lo
+  repite.
+  """
+  def add_xmlns(c, decls) when is_list(decls), do: Enum.reduce(decls, c, &add_xmlns(&2, &1))
+
+  def add_xmlns(c, {prefix, uri}) do
+    list = c.xmlns || []
+
+    if Enum.any?(list, fn {p, _} -> to_string(p) == to_string(prefix) end),
+      do: c,
+      else: %{c | xmlns: list ++ [{prefix, uri}]}
   end
 
-  def add_schema_location(c, schema_location) do
-    %{c | schema_location: schema_location}
+  @doc """
+  Agrega un par `{namespace, xsd}` al `xsi:schemaLocation` de la raíz. Acepta una
+  tupla o una lista de ellas. Deduplica por namespace.
+  """
+  def add_schema_location(c, pairs) when is_list(pairs),
+    do: Enum.reduce(pairs, c, &add_schema_location(&2, &1))
+
+  def add_schema_location(c, {ns, xsd}) do
+    list = c.schema_location || []
+
+    if Enum.any?(list, fn {n, _} -> n == ns end),
+      do: c,
+      else: %{c | schema_location: list ++ [{ns, xsd}]}
+  end
+
+  @doc """
+  Siembra en la raíz las declaraciones base (namespaces `cfdi`/`xsi` y el par
+  base de `schemaLocation`) según la `Version`: cfd/4 para 4.0, cfd/3 para 3.3.
+  Idempotente y deduplicada. Prepone el par base para que quede primero, como en
+  los CFDI del SAT. La llama `CFDI.new/1` al envolver un comprobante armado a
+  mano; los de `from_xml` traen sus declaraciones textual del XML y no se tocan.
+  """
+  def ensure_base_namespaces(c) do
+    {base_xmlns, base_schema} = base_for_version(Map.get(c, :Version))
+
+    %{
+      c
+      | xmlns: merge_prepend(base_xmlns, c.xmlns || [], fn {p, _} -> to_string(p) end),
+        schema_location: merge_prepend(base_schema, c.schema_location || [], fn {n, _} -> n end)
+    }
   end
 
   def add_concepto(c, %Concepto{} = concepto) do
     list = Map.get(c, :"cfdi:Conceptos") || []
-    c |> invalidar() |> Map.put(:"cfdi:Conceptos", list ++ [concepto])
+
+    c
+    |> invalidar()
+    |> Map.put(:"cfdi:Conceptos", list ++ [concepto])
+    |> register_complementos(concepto_complemento_children(concepto))
   end
 
   def add_concepto(c, data) when is_map(data) do
     add_concepto(c, struct(Concepto, data))
   end
 
-  def add_complemento(c, %Complemento{} = complemento) do
+  def add_complemento(c, %Complemento{children: children} = complemento) do
     list = Map.get(c, :"cfdi:Complementos") || []
-    c |> invalidar() |> Map.put(:"cfdi:Complementos", list ++ [complemento])
+
+    c
+    |> invalidar()
+    |> Map.put(:"cfdi:Complementos", list ++ [complemento])
+    |> register_complementos(children || [])
   end
 
   def add_complemento(c, data) when is_map(data) do
     add_complemento(c, struct(Complemento, data))
+  end
+
+  # Registra el namespace + par de schemaLocation de cada complemento concreto en
+  # la raíz (modelo eager: la lista almacenada es la fuente de la verdad). Cada
+  # complemento —de Comprobante o de Concepto— aporta su declaración cuando se
+  # adjunta, no al serializar.
+  defp register_complementos(c, children) do
+    children
+    |> Enum.reject(&is_nil/1)
+    |> Enum.reduce(c, fn child, acc ->
+      meta = child.__struct__.get_complement(child)
+
+      acc
+      |> add_xmlns({meta.xmlns_key, meta.xmlns})
+      |> add_schema_location(schema_pair(meta))
+    end)
+  end
+
+  defp concepto_complemento_children(%Concepto{
+         complemento: %Cfdi.Concepto.Complemento{complementos: comps}
+       }),
+       do: comps || []
+
+  defp concepto_complemento_children(_), do: []
+
+  defp schema_pair(%{schema_location: loc, xmlns: xmlns}) do
+    case String.split(loc, " ", parts: 2, trim: true) do
+      [ns, xsd] -> {ns, xsd}
+      [ns] -> {ns, ""}
+      [] -> {xmlns, ""}
+    end
+  end
+
+  @xsi_ns {:xsi, "http://www.w3.org/2001/XMLSchema-instance"}
+
+  defp base_for_version("3.3") do
+    {[{:cfdi, "http://www.sat.gob.mx/cfd/3"}, @xsi_ns],
+     [{"http://www.sat.gob.mx/cfd/3", "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd"}]}
+  end
+
+  defp base_for_version(_version) do
+    {[{:cfdi, "http://www.sat.gob.mx/cfd/4"}, @xsi_ns],
+     [{"http://www.sat.gob.mx/cfd/4", "http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd"}]}
+  end
+
+  defp merge_prepend(base, existing, key_fn) do
+    seen = MapSet.new(existing, key_fn)
+    Enum.reject(base, &MapSet.member?(seen, key_fn.(&1))) ++ existing
   end
 
   def add_relacionado(c, %Relacionado{} = relacionado) do
@@ -256,14 +351,26 @@ defmodule Cfdi.Comprobante do
     end
   end
 
+  # Modelo eager: la raíz emite EXACTAMENTE lo que está en las listas almacenadas
+  # `xmlns` y `schema_location`. Nada se deriva al serializar — el wiring ocurre
+  # en `add_complemento`/`add_concepto` (armado a mano) o lo llena el decoder
+  # (`from_xml`). Un comprobante sin declaraciones (listas vacías) no emite nada.
   defp namespace_attrs(c) do
-    declaraciones = c.xmlns || __xml__(:namespaces)
-    attrs = Map.new(declaraciones, fn {prefix, uri} -> {ns_attr_key(prefix), uri} end)
+    attrs = Map.new(c.xmlns || [], fn {prefix, uri} -> {ns_attr_key(prefix), uri} end)
 
-    case c.schema_location do
-      nil -> attrs
-      loc -> Map.put(attrs, :"xsi:schemaLocation", loc)
+    case c.schema_location || [] do
+      [] -> attrs
+      pairs -> Map.put(attrs, :"xsi:schemaLocation", schema_location_to_string(pairs))
     end
+  end
+
+  # Une los pares `[{ns, xsd}]` en el string `"ns1 xsd1 ns2 xsd2"` que espera el
+  # atributo `xsi:schemaLocation`.
+  defp schema_location_to_string(pairs) do
+    pairs
+    |> Enum.flat_map(fn {ns, xsd} -> [ns, xsd] end)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.join(" ")
   end
 
   defp ns_attr_key(prefix) do

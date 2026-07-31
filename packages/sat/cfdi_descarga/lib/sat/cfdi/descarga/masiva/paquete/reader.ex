@@ -24,7 +24,9 @@ defmodule Sat.Cfdi.Descarga.Masiva.Paquete.Reader do
       {:ok, files} ->
         stream =
           files
-          |> Stream.filter(fn {name, _} -> String.ends_with?(String.downcase(to_string(name)), ".xml") end)
+          |> Stream.filter(fn {name, _} ->
+            String.ends_with?(String.downcase(to_string(name)), ".xml")
+          end)
           |> Stream.map(fn {name, data} -> {to_string(name), to_string(data)} end)
 
         {:ok, stream}

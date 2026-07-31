@@ -73,7 +73,10 @@ defmodule Sat.PortalCfdi.Auth.Fiel do
     end
   end
 
-  defp resolve_credential(%CredencialFIEL{certificate_path: cer, private_key_path: key, password: pwd}, _opts) do
+  defp resolve_credential(
+         %CredencialFIEL{certificate_path: cer, private_key_path: key, password: pwd},
+         _opts
+       ) do
     Credential.create(cer, key, pwd)
   end
 

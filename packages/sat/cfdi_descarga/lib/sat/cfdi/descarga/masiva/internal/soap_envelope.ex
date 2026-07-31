@@ -29,7 +29,9 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
     created = format_datetime(now)
     expires = format_datetime(DateTime.add(now, lifetime, :second))
     timestamp_id = "_0"
-    token_id = "BinarySecurityToken-#{:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)}-4"
+
+    token_id =
+      "BinarySecurityToken-#{:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)}-4"
 
     timestamp =
       ~s|<u:Timestamp xmlns:u="#{@ns_wsu}" u:Id="#{timestamp_id}">| <>
@@ -308,8 +310,10 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
 
   defp tipo_comprobante_string(nil), do: nil
   defp tipo_comprobante_string(:null), do: "Null"
+
   defp tipo_comprobante_string(atom) when atom in [:i, :e, :t, :n, :p],
     do: atom |> Atom.to_string() |> String.upcase()
+
   defp tipo_comprobante_string(other) when is_binary(other), do: other
 
   # v1.5: el SAT espera el TEXTO del estado, no el numerico. Enviar "1"/"0"

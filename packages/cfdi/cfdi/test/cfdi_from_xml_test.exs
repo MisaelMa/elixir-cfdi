@@ -29,7 +29,9 @@ defmodule CFDIFromXmlTest do
     test "preserva el schemaLocation y los namespaces declarados" do
       {:ok, cfdi} = CFDI.from_xml(read("535BBAC7-85BB-45B0-B067-C8198CD5A52B.xml"))
 
-      assert cfdi.comprobante.schema_location =~ "cfdv40.xsd"
+      # schema_location es lista de pares {ns, xsd}
+      assert {"http://www.sat.gob.mx/cfd/4",
+              "http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd"} in cfdi.comprobante.schema_location
     end
   end
 
@@ -165,6 +167,7 @@ defmodule CFDIFromXmlTest do
 
       assert grupo."TipoRelacion" == "04"
       uuids = Map.get(grupo, :"cfdi:CfdiRelacionado") |> Enum.map(& &1."UUID")
+
       assert uuids == [
                "11111111-1111-1111-1111-111111111111",
                "22222222-2222-2222-2222-222222222222"

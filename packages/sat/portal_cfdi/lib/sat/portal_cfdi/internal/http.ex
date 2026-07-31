@@ -65,8 +65,15 @@ defmodule Sat.PortalCfdi.Internal.Http do
       receive_timeout: timeout
     ]
 
-    tls_opts = if body && method == :post, do: Keyword.put(tls_opts, :body, IO.iodata_to_binary(body)), else: tls_opts
-    tls_opts = if proxy = Keyword.get(opts, :proxy), do: Keyword.put(tls_opts, :proxy, proxy), else: tls_opts
+    tls_opts =
+      if body && method == :post,
+        do: Keyword.put(tls_opts, :body, IO.iodata_to_binary(body)),
+        else: tls_opts
+
+    tls_opts =
+      if proxy = Keyword.get(opts, :proxy),
+        do: Keyword.put(tls_opts, :proxy, proxy),
+        else: tls_opts
 
     case dispatch(method, url, tls_opts) do
       {:ok, %{status: status, body: rbody, content_type: ct, headers: resp_headers}} ->
@@ -91,7 +98,17 @@ defmodule Sat.PortalCfdi.Internal.Http do
                 # Pasamos el URL actual como Referer — el SAT lo exige
                 # para validar el flujo SAML.
                 next_opts = put_referer(opts, url)
-                do_request(:get, new_sesion, next_url, nil, timeout, follow, redirects_left - 1, next_opts)
+
+                do_request(
+                  :get,
+                  new_sesion,
+                  next_url,
+                  nil,
+                  timeout,
+                  follow,
+                  redirects_left - 1,
+                  next_opts
+                )
             end
 
           true ->
@@ -105,7 +122,8 @@ defmodule Sat.PortalCfdi.Internal.Http do
         end
 
       {:error, reason} ->
-        {:error, {:network_error, %{reason: reason, url: url, prev_url: Keyword.get(opts, :_prev_url)}}}
+        {:error,
+         {:network_error, %{reason: reason, url: url, prev_url: Keyword.get(opts, :_prev_url)}}}
     end
   rescue
     e -> {:error, {:exception, e}}

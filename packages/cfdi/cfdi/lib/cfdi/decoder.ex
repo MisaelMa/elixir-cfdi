@@ -81,15 +81,32 @@ defmodule Cfdi.Decoder do
   defp put_children(comprobante, elements, env) do
     Enum.reduce(elements, comprobante, fn {name, _, _} = el, acc ->
       case local(name) do
-        "Emisor" -> Map.put(acc, :"cfdi:Emisor", simple(Emisor, el))
-        "Receptor" -> Map.put(acc, :"cfdi:Receptor", simple(Receptor, el))
-        "InformacionGlobal" -> Map.put(acc, :"cfdi:InformacionGlobal", simple(InformacionGlobal, el))
-        "Impuestos" -> Map.put(acc, :"cfdi:Impuestos", decode_impuestos(el))
-        "Conceptos" -> Map.put(acc, :"cfdi:Conceptos", decode_conceptos(el, env))
-        "CfdiRelacionados" -> append(acc, :"cfdi:CfdiRelacionados", decode_relacionados(el))
-        "Complemento" -> append(acc, :"cfdi:Complementos", decode_complemento(el, env))
-        "Addenda" -> Map.put(acc, :"cfdi:Addenda", decode_opaque(el))
-        _ -> acc
+        "Emisor" ->
+          Map.put(acc, :"cfdi:Emisor", simple(Emisor, el))
+
+        "Receptor" ->
+          Map.put(acc, :"cfdi:Receptor", simple(Receptor, el))
+
+        "InformacionGlobal" ->
+          Map.put(acc, :"cfdi:InformacionGlobal", simple(InformacionGlobal, el))
+
+        "Impuestos" ->
+          Map.put(acc, :"cfdi:Impuestos", decode_impuestos(el))
+
+        "Conceptos" ->
+          Map.put(acc, :"cfdi:Conceptos", decode_conceptos(el, env))
+
+        "CfdiRelacionados" ->
+          append(acc, :"cfdi:CfdiRelacionados", decode_relacionados(el))
+
+        "Complemento" ->
+          append(acc, :"cfdi:Complementos", decode_complemento(el, env))
+
+        "Addenda" ->
+          Map.put(acc, :"cfdi:Addenda", decode_opaque(el))
+
+        _ ->
+          acc
       end
     end)
   end
@@ -127,7 +144,11 @@ defmodule Cfdi.Decoder do
           %{acc | cuenta_predial: simple(CuentaPredial, el)}
 
         "InformacionAduanera" ->
-          %{acc | informacion_aduanera: (acc.informacion_aduanera || []) ++ [simple(InformacionAduanera, el)]}
+          %{
+            acc
+            | informacion_aduanera:
+                (acc.informacion_aduanera || []) ++ [simple(InformacionAduanera, el)]
+          }
 
         "Parte" ->
           %{acc | parte: (acc.parte || []) ++ [decode_parte(el)]}
@@ -319,9 +340,23 @@ defmodule Cfdi.Decoder do
     {declarations, plain}
   end
 
+  # Devuelve el `schemaLocation` como lista de pares `[{ns, xsd}]` (misma
+  # representación que usa el armado a mano). Ausencia → `[]`, para que el
+  # roundtrip preserve que el XML original no lo traía.
   defp schema_location(attrs) do
-    Enum.find_value(attrs, fn {k, v} ->
-      if local(k) == "schemaLocation", do: v
+    case Enum.find_value(attrs, fn {k, v} -> if local(k) == "schemaLocation", do: v end) do
+      nil -> []
+      str -> parse_schema_location(str)
+    end
+  end
+
+  defp parse_schema_location(str) do
+    str
+    |> String.split(~r/\s+/, trim: true)
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn
+      [ns, xsd] -> {ns, xsd}
+      [ns] -> {ns, ""}
     end)
   end
 

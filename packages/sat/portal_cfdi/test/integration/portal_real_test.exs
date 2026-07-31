@@ -57,7 +57,10 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
 
   setup do
     cer_path = "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/00001000000703123762.cer"
-    key_path = "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/Claveprivada_FIEL_MACA961017759_20231026_123655.key"
+
+    key_path =
+      "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/Claveprivada_FIEL_MACA961017759_20231026_123655.key"
+
     password = "MisaelMa1710"
 
     cond do
@@ -103,9 +106,12 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
     log("============================================================")
 
     log("[1/4] Cargando FIEL desde disco...")
-    {time_load, {:ok, cred}} = :timer.tc(fn ->
-      Credential.create(ctx.cer_path, ctx.key_path, ctx.password)
-    end)
+
+    {time_load, {:ok, cred}} =
+      :timer.tc(fn ->
+        Credential.create(ctx.cer_path, ctx.key_path, ctx.password)
+      end)
+
     log("      OK en #{div(time_load, 1000)}ms")
     log("      RFC: #{Credential.rfc(cred)}")
     log("      Es FIEL? #{Credential.is_fiel?(cred)}")
@@ -113,6 +119,7 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
 
     log("")
     log("[2/4] Login al portal...")
+
     fiel = %CredencialFIEL{
       certificate_path: ctx.cer_path,
       private_key_path: ctx.key_path,
@@ -121,9 +128,10 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
 
     cred_portal = %CredencialPortal{tipo: :fiel, fiel: fiel}
 
-    {time_login, login_result} = :timer.tc(fn ->
-      Portal.login(cred_portal, credential: cred)
-    end)
+    {time_login, login_result} =
+      :timer.tc(fn ->
+        Portal.login(cred_portal, credential: cred)
+      end)
 
     case login_result do
       {:ok, sesion} ->
@@ -133,6 +141,7 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
 
         log("")
         log("[3/4] Consulta paginada (#{ctx.fecha_inicio} → #{ctx.fecha_fin})...")
+
         params = %ConsultaCfdiParams{
           tipo: ctx.tipo,
           fecha_inicio: ctx.fecha_inicio,
@@ -149,6 +158,7 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
 
             log("")
             log("[4/4] Iterando todas las paginas...")
+
             on_page = fn pag, acc ->
               log(
                 "      Pag #{pag.pagina_actual}/#{pag.total_paginas} → " <>
@@ -158,13 +168,14 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
               :ok
             end
 
-            {time_iter, iter_result} = :timer.tc(fn ->
-              Portal.consultar_todas_paginas(sesion, params,
-                max_paginas: ctx.max_paginas,
-                delay_ms: ctx.delay_ms,
-                on_page: on_page
-              )
-            end)
+            {time_iter, iter_result} =
+              :timer.tc(fn ->
+                Portal.consultar_todas_paginas(sesion, params,
+                  max_paginas: ctx.max_paginas,
+                  delay_ms: ctx.delay_ms,
+                  on_page: on_page
+                )
+              end)
 
             case iter_result do
               {:ok, lista, ultima_pagina, sesion} ->
@@ -184,16 +195,22 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
                   log("  Emisor:         #{primero.rfc_emisor} (#{primero.nombre_emisor})")
                   log("  Receptor:       #{primero.rfc_receptor}")
                   log("  Fecha emision:  #{primero.fecha_emision}")
-                  log("  Total:          $#{:erlang.float_to_binary(primero.total / 1, decimals: 2)}")
+
+                  log(
+                    "  Total:          $#{:erlang.float_to_binary(primero.total / 1, decimals: 2)}"
+                  )
+
                   log("  Estado:         #{primero.estado}")
 
                   if ctx.download_first do
                     log("")
                     log("Descargando XML del primer CFDI...")
+
                     case Portal.descargar_xml(sesion, primero.uuid) do
                       {:ok, xml, _} ->
                         log("      OK, #{byte_size(xml)} bytes")
                         log("      Empieza con: #{String.slice(xml, 0, 100)}...")
+
                       {:error, reason} ->
                         log("      ERROR: #{inspect(reason)}")
                     end
@@ -204,7 +221,10 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
                 assert length(lista) >= 0
 
               {:error, reason} ->
-                log("ERROR en iteracion: #{inspect(reason, limit: :infinity, printable_limit: 500)}")
+                log(
+                  "ERROR en iteracion: #{inspect(reason, limit: :infinity, printable_limit: 500)}"
+                )
+
                 flunk("iteracion fallo: #{inspect(reason)}")
             end
 
@@ -215,6 +235,7 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
 
       {:error, reason} ->
         log("ERROR en login: #{inspect(reason, limit: :infinity, printable_limit: 1000)}")
+
         flunk(
           "login fallo. Esto suele significar que el flujo SAML del IDP " <>
             "cambio. Compara el HTML del paso GET contra phpcfdi/cfdi-sat-scraper. " <>

@@ -125,10 +125,21 @@ defmodule Browser.Tls do
   end
 
   # NIF placeholder — reemplazado al cargar (13 args)
-  def request(_method, _url, _headers, _body,
-              _proxy_host, _proxy_port, _proxy_user, _proxy_pass,
-              _ciphers, _tls13_ciphers, _curves, _sigalgs,
-              _timeout_ms) do
+  def request(
+        _method,
+        _url,
+        _headers,
+        _body,
+        _proxy_host,
+        _proxy_port,
+        _proxy_user,
+        _proxy_pass,
+        _ciphers,
+        _tls13_ciphers,
+        _curves,
+        _sigalgs,
+        _timeout_ms
+      ) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
@@ -145,13 +156,13 @@ defmodule Browser.Tls do
   @doc "Nombre del perfil default (`:chrome`)."
   def default_profile, do: @default_profile
 
-  def get(url, opts \\ []),     do: do_request("GET", url, opts)
-  def post(url, opts \\ []),    do: do_request("POST", url, opts)
-  def put(url, opts \\ []),     do: do_request("PUT", url, opts)
-  def patch(url, opts \\ []),   do: do_request("PATCH", url, opts)
-  def delete(url, opts \\ []),  do: do_request("DELETE", url, opts)
+  def get(url, opts \\ []), do: do_request("GET", url, opts)
+  def post(url, opts \\ []), do: do_request("POST", url, opts)
+  def put(url, opts \\ []), do: do_request("PUT", url, opts)
+  def patch(url, opts \\ []), do: do_request("PATCH", url, opts)
+  def delete(url, opts \\ []), do: do_request("DELETE", url, opts)
   def options(url, opts \\ []), do: do_request("OPTIONS", url, opts)
-  def head(url, opts \\ []),    do: do_request("HEAD", url, opts)
+  def head(url, opts \\ []), do: do_request("HEAD", url, opts)
 
   @doc "Request con metodo HTTP arbitrario."
   def http_request(method, url, opts \\ []) when is_binary(method) do
@@ -250,12 +261,18 @@ defmodule Browser.Tls do
 
     result =
       request(
-        to_charlist(method), to_charlist(url),
-        to_charlist(headers_str), to_charlist(body),
-        to_charlist(proxy_host), proxy_port,
-        to_charlist(proxy_user), to_charlist(proxy_pass),
-        to_charlist(prof.ciphers), to_charlist(prof.tls13_ciphers),
-        to_charlist(prof.curves), to_charlist(prof.sigalgs),
+        to_charlist(method),
+        to_charlist(url),
+        to_charlist(headers_str),
+        to_charlist(body),
+        to_charlist(proxy_host),
+        proxy_port,
+        to_charlist(proxy_user),
+        to_charlist(proxy_pass),
+        to_charlist(prof.ciphers),
+        to_charlist(prof.tls13_ciphers),
+        to_charlist(prof.curves),
+        to_charlist(prof.sigalgs),
         timeout_ms
       )
 

@@ -10,7 +10,7 @@ defmodule Cfdi.ComplementoTest do
 
   use ExUnit.Case, async: true
 
-  alias Cfdi.{Comprobante, Complemento, Emisor, Receptor}
+  alias Cfdi.{Comprobante, Complemento, Concepto, Emisor, Receptor}
   alias Cfdi.Complementos.Pago20
 
   # Arma un comprobante mínimo válido con un complemento Pagos 2.0.
@@ -165,5 +165,113 @@ defmodule Cfdi.ComplementoTest do
 
     assert length(complemento_nodes) == 1,
            "debe haber exactamente 1 nodo cfdi:Complemento incluso con múltiples children"
+  end
+
+  # ── namespace + schemaLocation del complemento en la raíz ────────────────────
+
+  test "to_xml/1 declara el xmlns:pago20 del complemento en la raíz" do
+    xml = CFDI.to_xml(CFDI.new(comprobante_con_complemento()))
+
+    {:ok, {_tag, attrs, _children}} = Saxy.SimpleForm.parse_string(xml)
+
+    assert {"xmlns:pago20", "http://www.sat.gob.mx/Pagos20"} in attrs,
+           "el prefijo pago20 del complemento debe declararse en la raíz; " <>
+             "sin esto el XML no es namespace-well-formed y el PAC lo rechaza"
+  end
+
+  test "to_xml/1 concatena el par del complemento al xsi:schemaLocation de la raíz" do
+    xml = CFDI.to_xml(CFDI.new(comprobante_con_complemento()))
+
+    {:ok, {_tag, attrs, _children}} = Saxy.SimpleForm.parse_string(xml)
+    {"xsi:schemaLocation", loc} = List.keyfind(attrs, "xsi:schemaLocation", 0)
+
+    # el par base cfd/4 sigue presente…
+    assert loc =~
+             "http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd"
+
+    # …y además el par del complemento Pagos 2.0
+    assert loc =~
+             "http://www.sat.gob.mx/Pagos20 http://www.sat.gob.mx/sitio_internet/cfd/Pagos/Pagos20.xsd"
+  end
+
+  # ── complemento a nivel CONCEPTO (ej. iedu) → también sube a la raíz ─────────
+
+  # iedu:instEducativas es un ComplementoConcepto: vive DENTRO de un cfdi:Concepto,
+  # no en el cfdi:Complemento de la raíz. Pero el xsi:schemaLocation SIEMPRE está
+  # en la raíz, así que su par debe subir igual.
+  defp comprobante_con_iedu_en_concepto do
+    concepto =
+      %Concepto{
+        ClaveProdServ: "86121500",
+        Cantidad: "1",
+        ClaveUnidad: "E48",
+        Descripcion: "Colegiatura",
+        ValorUnitario: "1000",
+        Importe: "1000",
+        ObjetoImp: "02"
+      }
+      |> Concepto.add_complemento(
+        Cfdi.Complementos.Iedu.new(%{
+          version: "1.0",
+          nombreAlumno: "Pedro Pérez",
+          CURP: "PEPE900101HDFRRD09",
+          nivelEducativo: "Preescolar",
+          autRVOE: "AUT-001",
+          rfcPago: "PEPE900101A11"
+        })
+      )
+
+    %Comprobante{
+      Version: "4.0",
+      Serie: "A",
+      Folio: "1",
+      Fecha: "2026-07-31T10:00:00",
+      SubTotal: "1000.00",
+      Moneda: "MXN",
+      Total: "1000.00",
+      TipoDeComprobante: "I",
+      Exportacion: "01",
+      LugarExpedicion: "06600"
+    }
+    |> Comprobante.add_emisor(%Emisor{
+      Rfc: "EKU9003173C9",
+      Nombre: "ESCUELA KEMPER URGATE",
+      RegimenFiscal: "603"
+    })
+    |> Comprobante.add_receptor(%Receptor{
+      Rfc: "CACX7605101P8",
+      Nombre: "XOCHILT CASAS CHAVEZ",
+      UsoCFDI: "G03",
+      DomicilioFiscalReceptor: "06600",
+      RegimenFiscalReceptor: "612"
+    })
+    |> Comprobante.add_concepto(concepto)
+  end
+
+  test "to_xml/1 declara el xmlns:iedu en la raíz aunque el complemento esté en un Concepto" do
+    {:ok, {_tag, attrs, _children}} =
+      comprobante_con_iedu_en_concepto()
+      |> CFDI.new()
+      |> CFDI.to_xml()
+      |> Saxy.SimpleForm.parse_string()
+
+    assert {"xmlns:iedu", "http://www.sat.gob.mx/iedu"} in attrs,
+           "un complemento de Concepto también debe declarar su prefijo en la raíz"
+  end
+
+  test "to_xml/1 concatena el par del complemento de Concepto al schemaLocation raíz" do
+    {:ok, {_tag, attrs, _children}} =
+      comprobante_con_iedu_en_concepto()
+      |> CFDI.new()
+      |> CFDI.to_xml()
+      |> Saxy.SimpleForm.parse_string()
+
+    {"xsi:schemaLocation", loc} = List.keyfind(attrs, "xsi:schemaLocation", 0)
+
+    assert loc =~
+             "http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd"
+
+    assert loc =~
+             "http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd"
   end
 end

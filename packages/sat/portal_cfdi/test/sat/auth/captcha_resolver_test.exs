@@ -28,7 +28,8 @@ defmodule Sat.PortalCfdi.Auth.CaptchaResolverTest do
     end
 
     test "Mock con error retorna error" do
-      assert {:error, :forced_error} = CaptchaResolver.dispatch(<<>>, {Mock, error: :forced_error})
+      assert {:error, :forced_error} =
+               CaptchaResolver.dispatch(<<>>, {Mock, error: :forced_error})
     end
   end
 
@@ -58,7 +59,8 @@ defmodule Sat.PortalCfdi.Auth.CaptchaResolverTest do
     end
 
     test "sin resolvers en la lista" do
-      assert {:error, {:multi_failed, []}} = CaptchaResolver.dispatch(<<>>, {Multi, resolvers: []})
+      assert {:error, {:multi_failed, []}} =
+               CaptchaResolver.dispatch(<<>>, {Multi, resolvers: []})
     end
   end
 
@@ -77,10 +79,14 @@ defmodule Sat.PortalCfdi.Auth.CaptchaResolverTest do
       end
 
       logits = [
-        def_logits.(0),  # Y
-        def_logits.(1),  # 6
-        def_logits.(2),  # 5
-        def_logits.(0)   # Y
+        # Y
+        def_logits.(0),
+        # 6
+        def_logits.(1),
+        # 5
+        def_logits.(2),
+        # Y
+        def_logits.(0)
       ]
 
       result = BoxFacturaOnnx.decode_logits(logits, alphabet)
@@ -89,6 +95,7 @@ defmodule Sat.PortalCfdi.Auth.CaptchaResolverTest do
 
     test "deduplica caracteres consecutivos repetidos" do
       alphabet = "ABC"
+
       def_logits = fn winner ->
         for i <- 0..2 do
           if i == winner, do: 10.0, else: 0.0
@@ -97,12 +104,18 @@ defmodule Sat.PortalCfdi.Auth.CaptchaResolverTest do
 
       # AABBCA -> ABCA
       logits = [
-        def_logits.(0),  # A
-        def_logits.(0),  # A (consecutivo, se dedupe)
-        def_logits.(1),  # B
-        def_logits.(1),  # B (consecutivo, se dedupe)
-        def_logits.(2),  # C
-        def_logits.(0)   # A
+        # A
+        def_logits.(0),
+        # A (consecutivo, se dedupe)
+        def_logits.(0),
+        # B
+        def_logits.(1),
+        # B (consecutivo, se dedupe)
+        def_logits.(1),
+        # C
+        def_logits.(2),
+        # A
+        def_logits.(0)
       ]
 
       assert BoxFacturaOnnx.decode_logits(logits, alphabet) == "ABCA"

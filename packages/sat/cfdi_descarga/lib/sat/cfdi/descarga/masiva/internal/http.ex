@@ -50,7 +50,10 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Http do
         {:ok, %{status: status, body: resp, headers: resp_headers}}
 
       {:error, reason} ->
-        Logger.debug(fn -> "[SAT SOAP ✗] action=#{soap_action} network_error=#{inspect(reason)}" end)
+        Logger.debug(fn ->
+          "[SAT SOAP ✗] action=#{soap_action} network_error=#{inspect(reason)}"
+        end)
+
         {:error, {:network_error, reason}}
     end
   rescue

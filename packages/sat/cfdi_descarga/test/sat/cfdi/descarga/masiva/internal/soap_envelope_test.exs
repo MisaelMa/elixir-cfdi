@@ -69,7 +69,11 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelopeTest do
 
       # BinarySecurityToken con el certificado DER en base64
       assert envelope =~ ~s|<o:BinarySecurityToken |
-      assert envelope =~ ~s|ValueType="| <> "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
+
+      assert envelope =~
+               ~s|ValueType="| <>
+                 "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
+
       assert envelope =~ "#Base64Binary"
 
       # Firma sobre el Timestamp (Reference URI="#_0")

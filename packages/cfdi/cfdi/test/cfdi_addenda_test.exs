@@ -82,7 +82,9 @@ defmodule CFDIAddendaTest do
 
     test "sin addenda el campo queda en nil" do
       {:ok, cfdi} =
-        CFDI.from_xml(~s(<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"/>))
+        CFDI.from_xml(
+          ~s(<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"/>)
+        )
 
       assert Map.get(cfdi.comprobante, :"cfdi:Addenda") == nil
     end
@@ -165,7 +167,9 @@ defmodule CFDIAddendaTest do
         })
 
       {:ok, cadena_sin} = base |> CFDI.new() |> CFDI.generar_cadena_original(xslt: @xslt_path)
-      {:ok, cadena_con} = con_addenda |> CFDI.new() |> CFDI.generar_cadena_original(xslt: @xslt_path)
+
+      {:ok, cadena_con} =
+        con_addenda |> CFDI.new() |> CFDI.generar_cadena_original(xslt: @xslt_path)
 
       assert cadena_con == cadena_sin
     end

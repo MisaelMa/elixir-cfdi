@@ -29,7 +29,9 @@ defmodule Sat.PortalCfdi.Internal.Form do
   @spec encode(map()) :: String.t()
   def encode(map) when is_map(map) do
     map
-    |> Enum.map(fn {k, v} -> "#{URI.encode_www_form(to_string(k))}=#{URI.encode_www_form(to_string(v))}" end)
+    |> Enum.map(fn {k, v} ->
+      "#{URI.encode_www_form(to_string(k))}=#{URI.encode_www_form(to_string(v))}"
+    end)
     |> Enum.join("&")
   end
 end
