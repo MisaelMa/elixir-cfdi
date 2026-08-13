@@ -85,7 +85,9 @@ defmodule Sat.Cfdi.Descarga.Masiva.Pipeline do
   @spec listar_metadata(SolicitudParams.t(), keyword()) ::
           {:ok, [map()]} | {:error, term()}
   def listar_metadata(%SolicitudParams{} = params, opts) do
-    params = %{params | tipo_solicitud: :metadata}
+    # Solo fija el TIPO (metadata); la DIRECCIÓN (emitidos/recibidos) la conserva
+    # el `tipo_solicitud` que trae `params` → ahora funciona para recibidos también.
+    params = %{params | tipo_descarga: :metadata}
 
     case run_pipeline(params, opts) do
       {:ok, paquetes} ->

@@ -198,6 +198,63 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelopeTest do
       refute envelope =~ "FechaFinal="
       assert envelope =~ "</des:SolicitaDescargaFolio>"
     end
+
+    test "metadata emitidos: TipoSolicitud=Metadata sobre la operación Emitidos", %{cred: cred} do
+      params = %SolicitudParams{
+        rfc_solicitante: @rfc,
+        fecha_inicial: ~U[2025-03-01 00:00:00Z],
+        fecha_final: ~U[2025-03-31 23:59:59Z],
+        tipo_solicitud: :emitidos,
+        tipo_descarga: :metadata
+      }
+
+      envelope =
+        SoapEnvelope.build_solicitud(cred, params, "fake-token", "SolicitaDescargaEmitidos")
+
+      dump("SOLICITUD METADATA EMITIDOS", envelope)
+
+      assert envelope =~ ~s|TipoSolicitud="Metadata"|
+      assert envelope =~ ~s|RfcEmisor="#{@rfc}"|
+      assert envelope =~ "</des:SolicitaDescargaEmitidos>"
+    end
+
+    test "metadata RECIBIDOS: Metadata sobre la operación Recibidos (capacidad nueva)",
+         %{cred: cred} do
+      params = %SolicitudParams{
+        rfc_solicitante: @rfc,
+        rfc_emisor: "AAA010101AAA",
+        fecha_inicial: ~U[2025-03-01 00:00:00Z],
+        fecha_final: ~U[2025-03-31 23:59:59Z],
+        tipo_solicitud: :recibidos,
+        tipo_descarga: :metadata
+      }
+
+      envelope =
+        SoapEnvelope.build_solicitud(cred, params, "fake-token", "SolicitaDescargaRecibidos")
+
+      dump("SOLICITUD METADATA RECIBIDOS", envelope)
+
+      # La DIRECCIÓN (recibidos → RfcReceptor=solicitante + operación Recibidos)
+      # es independiente del TIPO (Metadata). Antes esto era imposible.
+      assert envelope =~ ~s|TipoSolicitud="Metadata"|
+      assert envelope =~ ~s|RfcReceptor="#{@rfc}"|
+      assert envelope =~ ~s|RfcEmisor="AAA010101AAA"|
+      assert envelope =~ "</des:SolicitaDescargaRecibidos>"
+    end
+
+    test "sin tipo_descarga (legacy) → TipoSolicitud=CFDI (retrocompat)", %{cred: cred} do
+      params = %SolicitudParams{
+        rfc_solicitante: @rfc,
+        fecha_inicial: ~U[2025-03-01 00:00:00Z],
+        fecha_final: ~U[2025-03-31 23:59:59Z],
+        tipo_solicitud: :emitidos
+      }
+
+      envelope =
+        SoapEnvelope.build_solicitud(cred, params, "fake-token", "SolicitaDescargaEmitidos")
+
+      assert envelope =~ ~s|TipoSolicitud="CFDI"|
+    end
   end
 
   # ==========================================================================

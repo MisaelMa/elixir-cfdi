@@ -23,6 +23,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Types do
       :fecha_inicial,
       :fecha_final,
       :tipo_solicitud,
+      :tipo_descarga,
       :tipo_comprobante,
       :estado_comprobante,
       :rfc_a_cuenta_terceros,
@@ -30,7 +31,13 @@ defmodule Sat.Cfdi.Descarga.Masiva.Types do
       :uuid
     ]
 
-    @type tipo_solicitud :: :metadata | :cfdi
+    # `tipo_solicitud` = DIRECCIÓN (operación SOAP): :emitidos | :recibidos | :folio.
+    # `tipo_descarga`  = TIPO de contenido (atributo TipoSolicitud): :cfdi | :metadata.
+    # Antes ambos ejes se mezclaban en `tipo_solicitud` (por eso :metadata/:cfdi
+    # siguen aceptándose como legacy y se infiere `tipo_descarga`). Separarlos
+    # permite pedir Metadata de RECIBIDOS (no solo emitidos).
+    @type tipo_solicitud :: :emitidos | :recibidos | :folio | :metadata | :cfdi
+    @type tipo_descarga :: :cfdi | :metadata
     @type tipo_comprobante :: :null | :i | :e | :t | :n | :p
     @type estado_comprobante :: :todos | :cancelado | :vigente
 
@@ -41,6 +48,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Types do
             fecha_inicial: DateTime.t() | String.t(),
             fecha_final: DateTime.t() | String.t(),
             tipo_solicitud: tipo_solicitud(),
+            tipo_descarga: tipo_descarga() | nil,
             tipo_comprobante: tipo_comprobante() | nil,
             estado_comprobante: estado_comprobante() | nil,
             rfc_a_cuenta_terceros: String.t() | nil,

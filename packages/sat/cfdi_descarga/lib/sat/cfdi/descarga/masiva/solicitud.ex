@@ -155,20 +155,34 @@ defmodule Sat.Cfdi.Descarga.Masiva.Solicitud do
     end
   end
 
-  @cfdi_tipos [:emitidos, :recibidos, :folio, :cfdi]
-
   @doc false
-  # Red de seguridad: en descargas de CFDI (XML) el SAT SOLO entrega vigentes; si
-  # no se declara EstadoComprobante, el SAT asume "Todos" y rechaza con 301 ("No
-  # se permite la descarga de xml que se encuentren cancelados"). Igual que
-  # phpcfdi, forzamos :vigente cuando el tipo produce TipoSolicitud="CFDI" y el
-  # llamador no especificó estado. Para :metadata (que sí incluye cancelados) NO
-  # se toca. Un estado explícito (:todos/:cancelado) tampoco se toca.
+  # Normaliza params: (1) infiere `tipo_descarga` si no vino (retrocompat con el
+  # `tipo_solicitud` legacy que mezclaba :cfdi/:metadata), (2) red de seguridad:
+  # en descargas de CFDI (XML) el SAT SOLO entrega vigentes; si no se declara
+  # EstadoComprobante, el SAT asume "Todos" y rechaza con 301. Como phpcfdi,
+  # forzamos :vigente cuando `tipo_descarga: :cfdi` y no hay estado. Para
+  # :metadata (que sí incluye cancelados) NO se toca. Estado explícito tampoco.
   @spec normalizar_params(SolicitudParams.t()) :: SolicitudParams.t()
-  def normalizar_params(%SolicitudParams{estado_comprobante: nil, tipo_solicitud: t} = p)
-      when t in @cfdi_tipos do
-    %{p | estado_comprobante: :vigente}
+  def normalizar_params(%SolicitudParams{} = p) do
+    p
+    |> inferir_tipo_descarga()
+    |> forzar_vigente_para_cfdi()
   end
 
-  def normalizar_params(%SolicitudParams{} = p), do: p
+  # Legacy: si el llamador puso `tipo_solicitud: :metadata` (viejo estilo) y no
+  # especificó `tipo_descarga`, lo tomamos como metadata. Cualquier otro → :cfdi.
+  defp inferir_tipo_descarga(%SolicitudParams{tipo_descarga: nil, tipo_solicitud: :metadata} = p),
+    do: %{p | tipo_descarga: :metadata}
+
+  defp inferir_tipo_descarga(%SolicitudParams{tipo_descarga: nil} = p),
+    do: %{p | tipo_descarga: :cfdi}
+
+  defp inferir_tipo_descarga(%SolicitudParams{} = p), do: p
+
+  defp forzar_vigente_para_cfdi(
+         %SolicitudParams{estado_comprobante: nil, tipo_descarga: :cfdi} = p
+       ),
+       do: %{p | estado_comprobante: :vigente}
+
+  defp forzar_vigente_para_cfdi(%SolicitudParams{} = p), do: p
 end

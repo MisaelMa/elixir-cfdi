@@ -257,7 +257,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
       {"RfcReceptor", rfc_receptor},
       {"RfcSolicitante", rfc_solicitante},
       {"TipoComprobante", tipo_comprobante_string(p.tipo_comprobante)},
-      {"TipoSolicitud", tipo_solicitud_string(p.tipo_solicitud)}
+      {"TipoSolicitud", tipo_descarga_string(p.tipo_descarga)}
     ]
     |> Enum.reject(fn {_, v} -> is_nil(v) or v == "" end)
     |> Enum.map(fn {k, v} -> ~s| #{k}="#{escape(v)}"| end)
@@ -301,12 +301,11 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.SoapEnvelope do
   defp complemento_string(nil), do: nil
   defp complemento_string(s) when is_binary(s), do: s
 
-  defp tipo_solicitud_string(:emitidos), do: "CFDI"
-  defp tipo_solicitud_string(:recibidos), do: "CFDI"
-  defp tipo_solicitud_string(:folio), do: "CFDI"
-  defp tipo_solicitud_string(:metadata), do: "Metadata"
-  defp tipo_solicitud_string(:cfdi), do: "CFDI"
-  defp tipo_solicitud_string(other) when is_binary(other), do: other
+  # El atributo `TipoSolicitud` del SAT distingue CFDI (XML) vs Metadata — NO la
+  # dirección (esa la da la operación SOAP vía `tipo_solicitud`). `nil` → "CFDI"
+  # (default seguro; `normalizar_params` ya lo infiere antes de llegar aquí).
+  defp tipo_descarga_string(:metadata), do: "Metadata"
+  defp tipo_descarga_string(_), do: "CFDI"
 
   defp tipo_comprobante_string(nil), do: nil
   defp tipo_comprobante_string(:null), do: "Null"
