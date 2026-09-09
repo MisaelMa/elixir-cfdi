@@ -34,6 +34,7 @@ defmodule Mix.Tasks.Sat.Catalogos.Generate do
     {opts, _rest, _invalid} =
       OptionParser.parse(args,
         strict: [
+          source: :string,
           xsd: :string,
           xlsx: :string,
           xlsx_url: :string,
@@ -44,8 +45,18 @@ defmodule Mix.Tasks.Sat.Catalogos.Generate do
         ]
       )
 
-    xsd_path = Keyword.get(opts, :xsd, "packages/files/4.0/catCFDI.xsd")
-    xlsx_path = Keyword.get(opts, :xlsx, "packages/files/4.0/catCFDI.xlsx")
+    # `--source cfdi` (default) usa catCFDI; `--source nomina` usa catNomina (los
+    # catálogos del complemento de Nómina, bajo Sat.Catalogos.Complementos.Nomina).
+    source = Keyword.get(opts, :source, "cfdi")
+
+    {default_xsd, default_xlsx} =
+      case source do
+        "nomina" -> {"packages/files/4.0/catNomina.xsd", "packages/files/4.0/catNomina.xlsx"}
+        _ -> {"packages/files/4.0/catCFDI.xsd", "packages/files/4.0/catCFDI.xlsx"}
+      end
+
+    xsd_path = Keyword.get(opts, :xsd, default_xsd)
+    xlsx_path = Keyword.get(opts, :xlsx, default_xlsx)
     output_dir = Keyword.get(opts, :output, "packages/sat/catalogos/lib/sat/catalogos")
     overrides_dir = Keyword.get(opts, :overrides_dir, nil)
     force_download = Keyword.get(opts, :force_download, false)
@@ -53,7 +64,7 @@ defmodule Mix.Tasks.Sat.Catalogos.Generate do
     only_filter = Keyword.get(opts, :only, nil)
 
     # Build spec list (optionally filtered by --only)
-    specs = filter_specs(only_filter)
+    specs = filter_specs(source, only_filter)
 
     # Determine skip_download: skip if file exists AND not forcing
     skip_download = File.exists?(xlsx_path) and not force_download
@@ -94,14 +105,15 @@ defmodule Mix.Tasks.Sat.Catalogos.Generate do
 
   # ─── Private helpers ─────────────────────────────────────────────────────────
 
-  defp filter_specs(nil) do
-    Sat.Catalogos.Codegen.Catalogs.specs()
-  end
+  defp base_specs("nomina"), do: Sat.Catalogos.Codegen.Catalogs.nomina_specs()
+  defp base_specs(_), do: Sat.Catalogos.Codegen.Catalogs.specs()
 
-  defp filter_specs(only_str) do
+  defp filter_specs(source, nil), do: base_specs(source)
+
+  defp filter_specs(source, only_str) do
     only_list = only_str |> String.split(",") |> Enum.map(&String.trim/1)
 
-    Sat.Catalogos.Codegen.Catalogs.specs()
+    base_specs(source)
     |> Enum.filter(fn spec ->
       # Match by file_name without .ex, e.g. "forma_pago"
       base = Path.basename(spec.file_name, ".ex")

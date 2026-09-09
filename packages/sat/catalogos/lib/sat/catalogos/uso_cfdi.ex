@@ -145,7 +145,7 @@ defmodule Sat.Catalogos.UsoCFDI do
     %{
       value: :sin_efectos_fiscales,
       code: "S01",
-      label: "Sin efectos fiscales.  ",
+      label: "Sin efectos fiscales.",
       deprecated: false
     },
     %{value: :pagos, code: "CP01", label: "Pagos", deprecated: false},
@@ -385,7 +385,7 @@ defmodule Sat.Catalogos.UsoCFDI do
        %{
          value: :sin_efectos_fiscales,
          code: "S01",
-         label: "Sin efectos fiscales.  ",
+         label: "Sin efectos fiscales.",
          deprecated: false
        }}
 
