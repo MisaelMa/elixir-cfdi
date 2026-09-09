@@ -32,7 +32,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Pipeline do
 
   alias Sat.Cfdi.Descarga.Masiva.{Autenticacion, Paquete, Solicitud, Verificacion}
   alias Sat.Cfdi.Descarga.Masiva.Paquete.Reader
-  alias Sat.Cfdi.Descarga.Masiva.Types.{SolicitudParams, Token}
+  alias Sat.Cfdi.Descarga.Masiva.Types.{SolicitudParams, Token, VerificacionResult}
 
   @doc """
   Ejecuta el flujo completo y devuelve un `Stream` lazy donde cada elemento
@@ -138,7 +138,11 @@ defmodule Sat.Cfdi.Descarga.Masiva.Pipeline do
          {:ok, %{cod_estatus: cod, id_solicitud: id_sol}} when cod in ["5000", "0"] <-
            Solicitud.solicitar(token, params, opts),
          id_sol when is_binary(id_sol) and id_sol != "" <- id_sol,
-         {:ok, %{ids_paquetes: ids}} <-
+         # cod_estatus de la VERIFICACION: si el SAT rechazo la consulta (404,
+         # 305, ...) no hay paquetes que valgan. Sin este guard el pipeline
+         # devolveria {:ok, []} y pareceria "no hay datos".
+         {:ok, %VerificacionResult{cod_estatus: vcod, ids_paquetes: ids}}
+         when vcod in ["5000", "0", ""] <-
            Verificacion.esperar_terminada(token, id_sol, opts) do
       paquetes =
         ids
@@ -154,6 +158,12 @@ defmodule Sat.Cfdi.Descarga.Masiva.Pipeline do
     else
       nil ->
         {:error, {:solicitud_sin_id, "el SAT no devolvio IdSolicitud"}}
+
+      # Va ANTES del catch-all de solicitud: VerificacionResult tambien tiene
+      # cod_estatus y mensaje, y si no se distingue se reporta como si hubiera
+      # fallado la solicitud, que es mentira.
+      {:ok, %VerificacionResult{cod_estatus: cod, mensaje: msg}} ->
+        {:error, {:verificacion_rechazada, cod, msg}}
 
       {:ok, %{cod_estatus: cod, mensaje: msg}} ->
         {:error, {:solicitud_rechazada, cod, msg}}
