@@ -23,6 +23,9 @@ defmodule Sat.Catalogos.Codegen.Catalogs do
       sheet_name: nil,
       extra_columns: [],
       overrides_file: nil,
+      # Fuente del catálogo: `:cfdi` (catCFDI, default) o `:nomina` (catNomina,
+      # complemento de Nómina 1.2). Afecta el encabezado y el moduledoc generados.
+      source: :cfdi,
       # When > 0, numeric-looking codes (all-digit strings) are zero-padded to this length.
       # Example: c_FormaPago has code_pad_start: 2 → "1" becomes "01", "12" stays "12".
       # When 0, no padding is applied.
@@ -42,6 +45,7 @@ defmodule Sat.Catalogos.Codegen.Catalogs do
             sheet_name: String.t() | nil,
             extra_columns: keyword(non_neg_integer()),
             overrides_file: String.t() | nil,
+            source: :cfdi | :nomina,
             code_pad_start: non_neg_integer(),
             label_column: non_neg_integer()
           }
@@ -206,6 +210,46 @@ defmodule Sat.Catalogos.Codegen.Catalogs do
           fin_vigencia: 6
         ]
       }
+    ]
+  end
+
+  @doc """
+  Especificaciones de los catálogos del complemento de NÓMINA (Nomina 1.2).
+
+  Se generan desde una fuente DISTINTA a catCFDI: `catNomina.xsd` + `catNomina.xlsx`.
+  Todos son `:strings_only` (código → descripción). Cada hoja del xlsx coincide
+  con el nombre del simpleType (c_TipoPercepcion, etc.).
+
+      mix sat.catalogos.generate --source nomina
+  """
+  @spec nomina_specs() :: [Spec.t()]
+  def nomina_specs do
+    spec = fn simpletype, module_name, file_name, code_pad_start ->
+      %Spec{
+        simpletype: simpletype,
+        module_name: module_name,
+        file_name: Path.join("complementos/nomina", file_name),
+        variant: :strings_only,
+        sheet_name: simpletype,
+        source: :nomina,
+        code_pad_start: code_pad_start
+      }
+    end
+
+    [
+      spec.("c_TipoPercepcion", Sat.Catalogos.Complementos.Nomina.TipoPercepcion, "tipo_percepcion.ex", 3),
+      spec.("c_TipoDeduccion", Sat.Catalogos.Complementos.Nomina.TipoDeduccion, "tipo_deduccion.ex", 3),
+      spec.("c_TipoOtroPago", Sat.Catalogos.Complementos.Nomina.TipoOtroPago, "tipo_otro_pago.ex", 3),
+      spec.("c_TipoNomina", Sat.Catalogos.Complementos.Nomina.TipoNomina, "tipo_nomina.ex", 0),
+      spec.("c_TipoContrato", Sat.Catalogos.Complementos.Nomina.TipoContrato, "tipo_contrato.ex", 2),
+      spec.("c_TipoJornada", Sat.Catalogos.Complementos.Nomina.TipoJornada, "tipo_jornada.ex", 2),
+      spec.("c_TipoRegimen", Sat.Catalogos.Complementos.Nomina.TipoRegimen, "tipo_regimen.ex", 2),
+      spec.("c_PeriodicidadPago", Sat.Catalogos.Complementos.Nomina.PeriodicidadPago, "periodicidad_pago.ex", 2),
+      spec.("c_RiesgoPuesto", Sat.Catalogos.Complementos.Nomina.RiesgoPuesto, "riesgo_puesto.ex", 1),
+      spec.("c_Banco", Sat.Catalogos.Complementos.Nomina.Banco, "banco.ex", 3),
+      spec.("c_OrigenRecurso", Sat.Catalogos.Complementos.Nomina.OrigenRecurso, "origen_recurso.ex", 0),
+      spec.("c_TipoHoras", Sat.Catalogos.Complementos.Nomina.TipoHoras, "tipo_horas.ex", 2),
+      spec.("c_TipoIncapacidad", Sat.Catalogos.Complementos.Nomina.TipoIncapacidad, "tipo_incapacidad.ex", 2)
     ]
   end
 end

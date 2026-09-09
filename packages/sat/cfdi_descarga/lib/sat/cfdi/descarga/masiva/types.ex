@@ -69,10 +69,26 @@ defmodule Sat.Cfdi.Descarga.Masiva.Types do
   end
 
   defmodule VerificacionResult do
-    @moduledoc "Resultado del paso `VerificaSolicitudDescarga`."
+    @moduledoc """
+    Resultado del paso `VerificaSolicitudDescarga`.
+
+    Ojo con los DOS codigos, que no son lo mismo:
+
+      * `cod_estatus` — `CodEstatus`: como le fue a la LLAMADA. `"5000"` = ok;
+        `"404"` = error no controlado (p. ej. el `IdSolicitud` no existe o no
+        es de ese RFC); `"305"` = certificado invalido, etc.
+      * `codigo_estado_solicitud` — `CodigoEstadoSolicitud`: como le fue a la
+        SOLICITUD ya registrada (`"5000"` ok, `"5004"` sin datos...).
+
+    Cuando `cod_estatus` trae un error, el SAT responde SIN
+    `CodigoEstadoSolicitud`, sin `IdsPaquetes` y con `EstadoSolicitud="0"`
+    (que no es un estado valido). Revisa `cod_estatus` ANTES que
+    `estado_solicitud`.
+    """
     defstruct [
       :id_solicitud,
       :estado_solicitud,
+      :cod_estatus,
       :codigo_estado_solicitud,
       :numero_cfdis,
       :mensaje,
@@ -85,6 +101,7 @@ defmodule Sat.Cfdi.Descarga.Masiva.Types do
     @type t :: %__MODULE__{
             id_solicitud: String.t(),
             estado_solicitud: estado_solicitud() | non_neg_integer(),
+            cod_estatus: String.t(),
             codigo_estado_solicitud: String.t(),
             numero_cfdis: non_neg_integer(),
             mensaje: String.t() | nil,

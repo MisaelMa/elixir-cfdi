@@ -75,8 +75,27 @@ defmodule Sat.Cfdi.Descarga.Masiva.Verificacion do
   | `CodigoEstadoSolicitud="5000"` | `codigo_estado_solicitud` | String tal cual. |
   | `NumeroCFDIs="35"` | `numero_cfdis` | Entero. |
   | `Mensaje="..."` | `mensaje` | String. |
-  | `CodEstatus="5000"` | — | Estatus de la *petición de verificación* (no de la solicitud). |
+  | `CodEstatus="5000"` | `cod_estatus` | Estatus de la *petición de verificación* (no de la solicitud). |
   | `<IdsPaquetes>...</IdsPaquetes>` | `ids_paquetes` | Lista; solo llega si `:terminada`. |
+
+  ### Ejemplo ERROR DE LA LLAMADA (respuesta real del SAT)
+
+  Cuando el SAT no puede ni procesar la consulta —`IdSolicitud` inexistente o de
+  otro RFC, o un fallo interno suyo— contesta **HTTP 200** con un `CodEstatus` de
+  error, `EstadoSolicitud="0"` (que no es un estado válido) y SIN
+  `CodigoEstadoSolicitud` ni `IdsPaquetes`:
+
+      <VerificaSolicitudDescargaResult CodEstatus="404" EstadoSolicitud="0"
+        NumeroCFDIs="0" Mensaje="Error no controlado."/>
+
+  → `%VerificacionResult{cod_estatus: "404", estado_solicitud: 0,
+  codigo_estado_solicitud: "", mensaje: "Error no controlado.", ids_paquetes: []}`
+
+  > Esto **no** es un `{:error, {:parse_error, ...}}`: la respuesta está bien
+  > formada, es un error de negocio y viaja dentro de `{:ok, _}` como el resto
+  > del cliente. **Revisa `cod_estatus` ANTES que `estado_solicitud`**: si no es
+  > `"5000"`, el `estado_solicitud` no significa nada. `esperar_terminada/3`
+  > tampoco reintenta en ese caso: corta y te devuelve el resultado.
 
   ### Ejemplo TERMINADA (hay paquetes para descargar)
 
@@ -189,6 +208,12 @@ defmodule Sat.Cfdi.Descarga.Masiva.Verificacion do
 
   defp poll(token, id, opts, interval, max, attempt) do
     case verificar(token, id, opts) do
+      # CodEstatus de error (404, 305, ...): la llamada ni siquiera llego a
+      # consultar la solicitud. Reintentar no la va a arreglar — se corta aqui
+      # y el llamador revisa `cod_estatus`.
+      {:ok, %VerificacionResult{cod_estatus: cod} = r} when cod not in ["5000", "0", ""] ->
+        {:ok, r}
+
       {:ok, %VerificacionResult{estado_solicitud: estado} = r}
       when estado in [:terminada, :error, :rechazada, :vencida] ->
         {:ok, r}

@@ -159,10 +159,14 @@ defmodule Sat.Catalogos.Codegen do
     simpletype = spec.simpletype
     pad = spec.code_pad_start
 
-    # Find the index of the row where col A equals the simpletype name
+    # Find the index of the row where col A equals the simpletype name.
+    # Trim the cell first: some SAT sheets carry a leading/trailing space in the
+    # header (e.g. c_TipoOtroPago is " c_TipoOtroPago"), which would otherwise
+    # fail the match → 0 data rows → every code marked deprecated with an empty label.
     header_index =
       Enum.find_index(raw_rows, fn row ->
-        Enum.at(row, 0) == simpletype
+        cell = Enum.at(row, 0)
+        is_binary(cell) and String.trim(cell) == simpletype
       end)
 
     if is_nil(header_index) do
@@ -190,9 +194,13 @@ defmodule Sat.Catalogos.Codegen do
 
         # Only accept binary values as labels. Non-binaries (e.g. date serials,
         # integers) that happen to sit in the label column are treated as absent.
+        # Trim edge whitespace: some SAT xlsx cells carry stray leading/trailing
+        # spaces — including non-breaking spaces ( ), e.g. " Quebec " in
+        # c_Estado. String.trim/1 removes Unicode whitespace, NBSP included. This
+        # is a no-op for already-clean labels, so it does not alter CFDI catalogs.
         label =
           if is_binary(raw_label) do
-            raw_label
+            String.trim(raw_label)
           else
             ""
           end
