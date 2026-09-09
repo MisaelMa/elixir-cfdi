@@ -56,12 +56,12 @@ defmodule Sat.PortalCfdi.Integration.PortalRealTest do
   @moduletag timeout: 600_000
 
   setup do
-    cer_path = "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/00001000000703123762.cer"
-
-    key_path =
-      "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/Claveprivada_FIEL_MACA961017759_20231026_123655.key"
-
-    password = "MisaelMa1710"
+    # La e.firma sale SOLO de variables de entorno: ni rutas personales ni
+    # contrasenas en el codigo. Copia `packages/sat/cfdi_descarga/env.example`
+    # a un `.env` (gitignorado), llenalo y hazle `source`.
+    cer_path = System.get_env("SAT_FIEL_CER")
+    key_path = System.get_env("SAT_FIEL_KEY")
+    password = System.get_env("SAT_FIEL_PASSWORD")
 
     cond do
       is_nil(cer_path) or is_nil(key_path) or is_nil(password) ->
