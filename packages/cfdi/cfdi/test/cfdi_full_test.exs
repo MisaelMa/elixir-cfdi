@@ -658,11 +658,13 @@ defmodule CFDIFullTest do
          {"Importe", "100.00"}
        ], []}
 
+    # cfdv40.xsd:190-251: dentro del concepto, Traslados va antes que Retenciones
+    # (en los impuestos del comprobante es al revés; ver impuestos_globales).
     impuestos_concepto =
       {"cfdi:Impuestos", [],
        [
-         {"cfdi:Retenciones", [], [retencion]},
-         {"cfdi:Traslados", [], [traslado]}
+         {"cfdi:Traslados", [], [traslado]},
+         {"cfdi:Retenciones", [], [retencion]}
        ]}
 
     parte =

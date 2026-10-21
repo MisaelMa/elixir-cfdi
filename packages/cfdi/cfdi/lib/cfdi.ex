@@ -570,6 +570,7 @@ defmodule CFDI do
     kids =
       child_pairs
       |> sort_children(tag, orden_explicito)
+      |> Enum.map(&orden_impuestos_concepto(tag, &1))
       |> Enum.flat_map(&render_child/1)
 
     XmlBuilder.element(tag, attrs, kids)
@@ -577,6 +578,12 @@ defmodule CFDI do
 
   # Hoja de texto (elemento sin hijos ni atributos, solo valor escalar).
   defp to_element(tag, value) when is_binary(tag), do: XmlBuilder.element(tag, to_string(value))
+
+  # cfdv40.xsd:190-251: dentro de cfdi:Concepto, Traslados va antes que Retenciones.
+  defp orden_impuestos_concepto("cfdi:Concepto", {"cfdi:Impuestos", body}) when is_map(body),
+    do: {"cfdi:Impuestos", Map.put_new(body, :__order__, ["cfdi:Traslados", "cfdi:Retenciones"])}
+
+  defp orden_impuestos_concepto(_parent, pair), do: pair
 
   defp render_child({tag, value}) when is_map(value), do: [to_element(tag, value)]
 
