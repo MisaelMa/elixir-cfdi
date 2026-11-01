@@ -83,6 +83,55 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.ParserTest do
       assert {:ok, r} = Parser.parse_verificacion(body)
       assert r.estado_solicitud == :en_proceso
     end
+
+    test "expone CodEstatus cuando el SAT lo manda" do
+      body =
+        ~s|<VerificaSolicitudDescargaResult CodEstatus="5000" EstadoSolicitud="3" | <>
+          ~s|CodigoEstadoSolicitud="5000" NumeroCFDIs="7" Mensaje="Solicitud Aceptada">| <>
+          ~s|<IdsPaquetes>PKG_01</IdsPaquetes></VerificaSolicitudDescargaResult>|
+
+      assert {:ok, r} = Parser.parse_verificacion(body)
+      assert r.cod_estatus == "5000"
+      assert r.estado_solicitud == :terminada
+    end
+
+    # Respuesta REAL del SAT (HTTP 200) ante un IdSolicitud que no reconoce:
+    # no trae CodigoEstadoSolicitud ni IdsPaquetes. Es un error de NEGOCIO, no
+    # un XML ilegible: debe llegar dentro de {:ok, _} con su codigo y mensaje.
+    test "CodEstatus de error sin CodigoEstadoSolicitud NO es un parse_error" do
+      body =
+        ~s|<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>| <>
+          ~s|<VerificaSolicitudDescargaResponse xmlns="http://DescargaMasivaTerceros.sat.gob.mx">| <>
+          ~s|<VerificaSolicitudDescargaResult CodEstatus="404" EstadoSolicitud="0" | <>
+          ~s|NumeroCFDIs="0" Mensaje="Error no controlado."/>| <>
+          ~s|</VerificaSolicitudDescargaResponse></s:Body></s:Envelope>|
+
+      assert {:ok, r} = Parser.parse_verificacion(body)
+      assert r.cod_estatus == "404"
+      assert r.mensaje == "Error no controlado."
+      assert r.estado_solicitud == 0
+      assert r.codigo_estado_solicitud == ""
+      assert r.numero_cfdis == 0
+      assert r.ids_paquetes == []
+    end
+
+    test "id_solicitud sale del atributo IdSolicitud, no de IdsPaquetes" do
+      body =
+        ~s|<VerificaSolicitudDescargaResult EstadoSolicitud="3" CodigoEstadoSolicitud="5000" | <>
+          ~s|NumeroCFDIs="1"><IdsPaquetes>PKG_XYZ_01</IdsPaquetes>| <>
+          ~s|</VerificaSolicitudDescargaResult>|
+
+      assert {:ok, r} = Parser.parse_verificacion(body)
+      refute r.id_solicitud == "PKG_XYZ_01"
+      assert r.id_solicitud == ""
+      assert r.ids_paquetes == ["PKG_XYZ_01"]
+    end
+
+    test "un body sin el Result si es parse_error" do
+      body = ~s|<s:Envelope><s:Body><OtraCosa/></s:Body></s:Envelope>|
+
+      assert {:error, {:parse_error, :missing_fields, ^body}} = Parser.parse_verificacion(body)
+    end
   end
 
   describe "parse_descarga/2" do

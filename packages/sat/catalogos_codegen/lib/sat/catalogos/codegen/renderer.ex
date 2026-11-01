@@ -24,10 +24,21 @@ defmodule Sat.Catalogos.Codegen.Renderer do
 
   alias Sat.Catalogos.Codegen.Catalogs.Spec
 
-  @header "# ─────────────────────────────────────────────────────────────\n" <>
-            "#  Generado por Sat.Catalogos.Codegen — NO EDITAR.\n" <>
-            "#  Source: packages/files/4.0/catCFDI.xsd + catCFDI.xlsx\n" <>
-            "# ─────────────────────────────────────────────────────────────\n"
+  # Encabezado de 4 líneas, con el archivo fuente según el catálogo:
+  # `:cfdi` → catCFDI, `:nomina` → catNomina (complemento de Nómina 1.2).
+  defp header(:nomina), do: encabezado("packages/files/4.0/catNomina.xsd + catNomina.xlsx")
+  defp header(_), do: encabezado("packages/files/4.0/catCFDI.xsd + catCFDI.xlsx")
+
+  defp encabezado(source) do
+    "# ─────────────────────────────────────────────────────────────\n" <>
+      "#  Generado por Sat.Catalogos.Codegen — NO EDITAR.\n" <>
+      "#  Source: #{source}\n" <>
+      "# ─────────────────────────────────────────────────────────────\n"
+  end
+
+  # Contexto del moduledoc según la fuente del catálogo.
+  defp moduledoc_ctx(:nomina), do: "del complemento Nómina 1.2 del SAT"
+  defp moduledoc_ctx(_), do: "del SAT (CFDI 4.0)"
 
   @doc """
   Renders the Elixir source for a catalog module.
@@ -63,7 +74,7 @@ defmodule Sat.Catalogos.Codegen.Renderer do
 
     body =
       "defmodule #{mod} do\n" <>
-        "  @moduledoc \"Catálogo #{spec.simpletype} del SAT (CFDI 4.0).\"\n\n" <>
+        "  @moduledoc \"Catálogo #{spec.simpletype} #{moduledoc_ctx(spec.source)}.\"\n\n" <>
         "  @type t :: #{type_union}\n\n" <>
         "  @entries #{render_entries_with_atoms(entries)}\n\n" <>
         "  @doc \"Lista completa del catálogo.\"\n" <>
@@ -78,7 +89,7 @@ defmodule Sat.Catalogos.Codegen.Renderer do
         render_from_code_clauses_atoms(entries) <>
         "\nend\n"
 
-    @header <> format_body(body)
+    header(spec.source) <> format_body(body)
   end
 
   defp render_entries_with_atoms(entries) do
@@ -119,7 +130,7 @@ defmodule Sat.Catalogos.Codegen.Renderer do
 
     body =
       "defmodule #{mod} do\n" <>
-        "  @moduledoc \"Catálogo #{spec.simpletype} del SAT (CFDI 4.0).\"\n\n" <>
+        "  @moduledoc \"Catálogo #{spec.simpletype} #{moduledoc_ctx(spec.source)}.\"\n\n" <>
         "  @type t :: %{value: String.t(), label: String.t(), deprecated: boolean()}\n\n" <>
         "  @entries #{render_entries_strings_only(entries)}\n\n" <>
         "  @doc \"Lista completa del catálogo.\"\n" <>
@@ -136,7 +147,7 @@ defmodule Sat.Catalogos.Codegen.Renderer do
         "  end\n" <>
         "end\n"
 
-    @header <> format_body(body)
+    header(spec.source) <> format_body(body)
   end
 
   defp render_entries_strings_only(entries) do
@@ -168,7 +179,7 @@ defmodule Sat.Catalogos.Codegen.Renderer do
 
     body =
       "defmodule #{mod} do\n" <>
-        "  @moduledoc \"Catálogo #{spec.simpletype} del SAT (CFDI 4.0).\"\n\n" <>
+        "  @moduledoc \"Catálogo #{spec.simpletype} #{moduledoc_ctx(spec.source)}.\"\n\n" <>
         type_t <>
         "\n" <>
         "  @entries #{render_entries_regimen_fiscal(entries)}\n\n" <>
@@ -186,7 +197,7 @@ defmodule Sat.Catalogos.Codegen.Renderer do
         "  end\n" <>
         "end\n"
 
-    @header <> format_body(body)
+    header(spec.source) <> format_body(body)
   end
 
   defp render_entries_regimen_fiscal(entries) do

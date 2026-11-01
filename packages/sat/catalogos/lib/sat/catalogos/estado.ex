@@ -91,19 +91,19 @@ defmodule Sat.Catalogos.Estado do
     %{value: "WA", label: "Washington", deprecated: false},
     %{value: "WI", label: "Wisconsin", deprecated: false},
     %{value: "WY", label: "Wyoming", deprecated: false},
-    %{value: "ON", label: "Ontario ", deprecated: false},
-    %{value: "QC", label: " Quebec ", deprecated: false},
-    %{value: "NS", label: " Nueva Escocia", deprecated: false},
-    %{value: "NB", label: "Nuevo Brunswick ", deprecated: false},
-    %{value: "MB", label: " Manitoba", deprecated: false},
-    %{value: "BC", label: " Columbia Británica", deprecated: false},
-    %{value: "PE", label: " Isla del Príncipe Eduardo", deprecated: false},
-    %{value: "SK", label: " Saskatchewan", deprecated: false},
-    %{value: "AB", label: " Alberta", deprecated: false},
-    %{value: "NL", label: " Terranova y Labrador", deprecated: false},
-    %{value: "NT", label: " Territorios del Noroeste", deprecated: false},
-    %{value: "YT", label: " Yukón", deprecated: false},
-    %{value: "UN", label: " Nunavut", deprecated: false}
+    %{value: "ON", label: "Ontario", deprecated: false},
+    %{value: "QC", label: "Quebec", deprecated: false},
+    %{value: "NS", label: "Nueva Escocia", deprecated: false},
+    %{value: "NB", label: "Nuevo Brunswick", deprecated: false},
+    %{value: "MB", label: "Manitoba", deprecated: false},
+    %{value: "BC", label: "Columbia Británica", deprecated: false},
+    %{value: "PE", label: "Isla del Príncipe Eduardo", deprecated: false},
+    %{value: "SK", label: "Saskatchewan", deprecated: false},
+    %{value: "AB", label: "Alberta", deprecated: false},
+    %{value: "NL", label: "Terranova y Labrador", deprecated: false},
+    %{value: "NT", label: "Territorios del Noroeste", deprecated: false},
+    %{value: "YT", label: "Yukón", deprecated: false},
+    %{value: "UN", label: "Nunavut", deprecated: false}
   ]
 
   @doc "Lista completa del catálogo."

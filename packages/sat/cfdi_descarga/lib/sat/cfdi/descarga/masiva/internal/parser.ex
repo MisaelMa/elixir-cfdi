@@ -66,38 +66,44 @@ defmodule Sat.Cfdi.Descarga.Masiva.Internal.Parser do
   @doc "Parsea la respuesta de `VerificaSolicitudDescarga`."
   @spec parse_verificacion(binary()) :: {:ok, VerificacionResult.t()} | {:error, term()}
   def parse_verificacion(body) when is_binary(body) do
-    estado_solicitud =
-      extract_attr(body, "VerificaSolicitudDescargaResult", "EstadoSolicitud")
-      |> parse_estado_solicitud()
+    cod_estatus = attr(body, "CodEstatus")
+    estado_raw = attr(body, "EstadoSolicitud")
+    cod_estado_solicitud = attr(body, "CodigoEstadoSolicitud")
+    mensaje = attr(body, "Mensaje")
+    numero_cfdis = attr(body, "NumeroCFDIs")
 
-    cod_estado_solicitud =
-      extract_attr(body, "VerificaSolicitudDescargaResult", "CodigoEstadoSolicitud") || ""
-
-    numero_cfdis =
-      extract_attr(body, "VerificaSolicitudDescargaResult", "NumeroCFDIs")
-      |> parse_int_or_zero()
-
-    mensaje = extract_attr(body, "VerificaSolicitudDescargaResult", "Mensaje")
-
-    id_solicitud =
-      extract_attr(body, "VerificaSolicitudDescargaResult", "IdsPaquetes") |> nil_to_empty()
+    # El SAT NO regresa IdSolicitud en la verificacion; `Verificacion.verificar/3`
+    # lo rellena con el que se consulto. Se lee de todos modos por si algun dia
+    # lo manda (antes se leia por error el atributo `IdsPaquetes`).
+    id_solicitud = attr(body, "IdSolicitud")
 
     ids_paquetes = extract_all_text(body, "IdsPaquetes")
 
-    if cod_estado_solicitud == "" and ids_paquetes == [] do
+    # Solo es un fallo de PARSEO cuando la respuesta no trae el Result. Si el
+    # SAT rechaza la llamada (CodEstatus 404 / 305 / ...) contesta HTTP 200 con
+    # EstadoSolicitud="0" y SIN CodigoEstadoSolicitud ni IdsPaquetes: eso es un
+    # error de NEGOCIO y viaja dentro de {:ok, _}, como el resto del cliente.
+    vacia? =
+      is_nil(cod_estatus) and is_nil(estado_raw) and is_nil(cod_estado_solicitud) and
+        is_nil(mensaje) and ids_paquetes == []
+
+    if vacia? do
       {:error, {:parse_error, :missing_fields, body}}
     else
       {:ok,
        %VerificacionResult{
-         id_solicitud: id_solicitud,
-         estado_solicitud: estado_solicitud,
-         codigo_estado_solicitud: cod_estado_solicitud,
-         numero_cfdis: numero_cfdis,
+         id_solicitud: nil_to_empty(id_solicitud),
+         estado_solicitud: parse_estado_solicitud(estado_raw),
+         cod_estatus: nil_to_empty(cod_estatus),
+         codigo_estado_solicitud: nil_to_empty(cod_estado_solicitud),
+         numero_cfdis: parse_int_or_zero(numero_cfdis),
          mensaje: mensaje,
          ids_paquetes: ids_paquetes
        }}
     end
   end
+
+  defp attr(body, name), do: extract_attr(body, "VerificaSolicitudDescargaResult", name)
 
   @doc "Parsea la respuesta de `DescargaMasivaSolicitudes`. El paquete viene como base64 dentro de `<Paquete>`."
   @spec parse_descarga(binary(), String.t()) :: {:ok, Paquete.t()} | {:error, term()}

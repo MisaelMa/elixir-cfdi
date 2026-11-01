@@ -4,7 +4,7 @@ defmodule Sat.Catalogos.MixProject do
   def project do
     [
       app: :sat_catalogos,
-      version: "4.0.1",
+      version: "4.0.3",
       build_path: "../../../_build",
       deps_path: "../../../deps",
       lockfile: "../../../mix.lock",

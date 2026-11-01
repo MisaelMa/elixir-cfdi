@@ -52,6 +52,7 @@ defmodule Sat.Cfdi.Descarga.Masiva do
   | Código | Significado | Que hacer |
   |--------|-------------|-----------|
   | `5000` | Solicitud recibida con éxito / Aceptada | Continuar (llega `IdSolicitud`). |
+  | `5001` | **Tercero no autorizado** | Pediste CFDI donde tu RFC no es emisor ni receptor. Un contador NO puede usar su e.firma para bajar los CFDI de un cliente. |
   | `5002` | Se agotaron las solicitudes de por vida | Ya hiciste el máx (2) con ESOS mismos parámetros. Cambia el rango/criterios. |
   | `5003` | Tope máximo de elementos de la consulta | Acota el rango de fechas. |
   | `5004` | No se encontró la información | No hay CFDI con esos criterios. No es un bug. |
@@ -63,6 +64,21 @@ defmodule Sat.Cfdi.Descarga.Masiva do
   | `304`  | Certificado Revocado o Caduco | La FIEL venció o fue revocada. |
   | `305`  | Certificado Inválido | Tipo/codificación de certificado incorrecto (¿es CSD en vez de FIEL?). |
   | `404`  | Error no controlado | Reintenta; si persiste, levanta RMA con el SAT. |
+
+  #### `Verificacion`: primero `cod_estatus`, luego `estado_solicitud`
+
+  `VerificacionResult` trae DOS códigos y no son lo mismo:
+
+    * `cod_estatus` (`CodEstatus`) — cómo le fue a la **llamada**. `"5000"` = ok.
+      Si trae error (`"404"` no controlado, `"305"` certificado inválido…), el
+      SAT responde con `EstadoSolicitud="0"` —que no es un estado válido— y sin
+      `CodigoEstadoSolicitud` ni `IdsPaquetes`. Un `"404"` suele significar que
+      el `IdSolicitud` no existe o no es de ese RFC.
+    * `codigo_estado_solicitud` (`CodigoEstadoSolicitud`) — cómo le fue a la
+      **solicitud** ya registrada (`"5004"` = sin datos, etc.).
+
+  Revisa `cod_estatus` ANTES de mirar `estado_solicitud`: si no es `"5000"`, el
+  estado no significa nada.
 
   #### `EstadoSolicitud` — `estado_solicitud` de `Verificacion`
 

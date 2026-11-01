@@ -18,9 +18,9 @@ defmodule Sat.Cfdi.Descarga.Masiva.Integration.DescargaMasivaRealTest do
 
   ## Variables de entorno
 
-      SAT_FIEL_CER          ruta al .cer de la FIEL (default: FIEL de amir en disco)
-      SAT_FIEL_KEY          ruta al .key de la FIEL
-      SAT_FIEL_PASSWORD     contrasena de la llave privada
+      SAT_FIEL_CER          ruta al .cer de la FIEL (REQUERIDA)
+      SAT_FIEL_KEY          ruta al .key de la FIEL (REQUERIDA)
+      SAT_FIEL_PASSWORD     contrasena de la llave privada (REQUERIDA)
       SAT_TIPO              "recibidos" (default) | "emitidos"
       SAT_FECHA_INICIO      "YYYY-MM-DD" (default: primer dia del mes pasado)
       SAT_FECHA_FIN         "YYYY-MM-DD" (default: ultimo dia del mes pasado)
@@ -29,10 +29,30 @@ defmodule Sat.Cfdi.Descarga.Masiva.Integration.DescargaMasivaRealTest do
 
   ## Como correrlas
 
-      # solo la de solicitud + verificacion
-      mix test --include real_sat \\
-        test/integration/descarga_masiva_real_test.exs --trace \\
-        --only "test:solicitud + verificacion"
+  Primero exporta tu e.firma. Hay una plantilla en
+  `packages/sat/cfdi_descarga/env.example`:
+
+      cd packages/sat/cfdi_descarga
+      cp env.example .env      # tu copia privada; el .gitignore ignora .env
+      $EDITOR .env             # pon tus rutas y contrasena
+      source .env
+
+  O a mano:
+
+      export SAT_FIEL_CER="$HOME/fiel/efirma.cer"
+      export SAT_FIEL_KEY="$HOME/fiel/efirma.key"
+      export SAT_FIEL_PASSWORD="tu-contrasena"
+
+  Y ya:
+
+      # solo UNA prueba: filtra por numero de linea.
+      # OJO: `--only "test:<nombre>"` NO filtra si tambien pasas
+      # `--include real_sat` — el include gana y corre TODAS las reales,
+      # quemando cuota del SAT. Usa archivo:linea.
+      grep -n 'test "' test/integration/descarga_masiva_real_test.exs
+
+      mix test --include real_sat --trace \\
+        test/integration/descarga_masiva_real_test.exs:231
 
       # la descarga completa (puede tardar varios minutos)
       SAT_FECHA_INICIO=2025-05-01 SAT_FECHA_FIN=2025-05-31 \\
@@ -58,17 +78,20 @@ defmodule Sat.Cfdi.Descarga.Masiva.Integration.DescargaMasivaRealTest do
   @moduletag timeout: 900_000
 
   setup do
-    cer_path =
-      System.get_env("SAT_FIEL_CER") ||
-        "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/00001000000703123762.cer"
-
-    key_path =
-      System.get_env("SAT_FIEL_KEY") ||
-        "/Users/amir/Documents/FIEL_MACA961017759_20231026123655/Claveprivada_FIEL_MACA961017759_20231026_123655.key"
-
+    # Sin defaults: la e.firma sale SOLO de variables de entorno. Copia
+    # `env.example` a `.env` (gitignorado), llenalo y hazle `source`.
+    cer_path = System.get_env("SAT_FIEL_CER")
+    key_path = System.get_env("SAT_FIEL_KEY")
     password = System.get_env("SAT_FIEL_PASSWORD")
 
+    faltan_vars =
+      "exporta SAT_FIEL_CER, SAT_FIEL_KEY y SAT_FIEL_PASSWORD " <>
+        "(ver env.example) apuntando a tu e.firma"
+
     cond do
+      is_nil(cer_path) or is_nil(key_path) ->
+        {:ok, skip: faltan_vars}
+
       not File.exists?(cer_path) ->
         {:ok, skip: "no existe el .cer: #{cer_path}"}
 

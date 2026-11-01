@@ -46,6 +46,55 @@ defmodule Sat.Cfdi.Descarga.Masiva.SolicitudTest do
     end
   end
 
+  describe "validar_rfc_propio/2 (candado local del 5001)" do
+    # El SAT exige que RfcSolicitante sea emisor o receptor de lo que pides:
+    # "Solo el Emisor o Receptor podran realizar la consulta y recuperacion".
+    # Si no, contesta 5001 "Tercero no autorizado". Cortamos antes de la red.
+
+    test "emitidos: rfc_emisor ajeno es rechazado localmente" do
+      p = %SolicitudParams{tipo_solicitud: :emitidos, rfc_emisor: "XAXX010101000"}
+
+      assert {:error, {:rfc_ajeno, :emitidos, "XAXX010101000", "MACA961017759"}} =
+               Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+
+    test "emitidos: rfc_emisor propio pasa (case/espacios no importan)" do
+      p = %SolicitudParams{tipo_solicitud: :emitidos, rfc_emisor: " maca961017759 "}
+      assert :ok = Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+
+    test "emitidos: sin rfc_emisor pasa (el sobre usa el solicitante)" do
+      p = %SolicitudParams{tipo_solicitud: :emitidos}
+      assert :ok = Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+
+    test "emitidos: rfc_receptor ajeno SI se permite — es filtro de contraparte" do
+      p = %SolicitudParams{
+        tipo_solicitud: :emitidos,
+        rfc_receptor: ["XAXX010101000", "XEXX010101000"]
+      }
+
+      assert :ok = Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+
+    test "recibidos: rfc_receptor ajeno es rechazado localmente" do
+      p = %SolicitudParams{tipo_solicitud: :recibidos, rfc_receptor: "XAXX010101000"}
+
+      assert {:error, {:rfc_ajeno, :recibidos, "XAXX010101000", "MACA961017759"}} =
+               Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+
+    test "recibidos: rfc_emisor ajeno SI se permite — es filtro de proveedor" do
+      p = %SolicitudParams{tipo_solicitud: :recibidos, rfc_emisor: "XAXX010101000"}
+      assert :ok = Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+
+    test "folio: no aplica el candado (la consulta va por UUID)" do
+      p = %SolicitudParams{tipo_solicitud: :folio, uuid: "790040c0-1135-4a30-bf03-9cb25f863396"}
+      assert :ok = Solicitud.validar_rfc_propio(p, "MACA961017759")
+    end
+  end
+
   describe "soap_operation/1 (dirección → operación)" do
     test "mapea cada dirección" do
       assert Solicitud.soap_operation(:emitidos) == "SolicitaDescargaEmitidos"
