@@ -1,7 +1,7 @@
 defmodule CFDIChildOrderTest do
   use ExUnit.Case, async: true
 
-  alias Cfdi.{Complemento, Comprobante}
+  alias Cfdi.{Complemento, Comprobante, Concepto, Impuestos}
   alias Cfdi.Complementos.{Nomina12, Pago20}
 
   # Los payloads de complemento son mapas opacos, y un mapa no expresa orden:
@@ -116,6 +116,66 @@ defmodule CFDIChildOrderTest do
       refute CFDI.to_json(cfdi) =~ "__order__"
       # …pero el XML sí lo respeta.
       assert_orden(CFDI.to_xml(cfdi), ["x:B", "x:A"])
+    end
+  end
+
+  # cfdv40.xsd: dentro de cfdi:Concepto la secuencia es Traslados → Retenciones;
+  # en el cfdi:Impuestos del comprobante es Retenciones → Traslados. Un mapa
+  # itera alfabético (Retenciones < Traslados), que solo coincide con el segundo.
+  @traslado %{
+    Base: "100.00",
+    Impuesto: "002",
+    TipoFactor: "Tasa",
+    TasaOCuota: "0.160000",
+    Importe: "16.00"
+  }
+  @retencion %{
+    Base: "100.00",
+    Impuesto: "002",
+    TipoFactor: "Tasa",
+    TasaOCuota: "0.106666",
+    Importe: "10.67"
+  }
+
+  defp xml_con_impuestos(:concepto) do
+    concepto =
+      %Concepto{
+        ClaveProdServ: "86121500",
+        Cantidad: "1",
+        ClaveUnidad: "E48",
+        Descripcion: "Colegiatura",
+        ValorUnitario: "100.00",
+        Importe: "100.00",
+        ObjetoImp: "02"
+      }
+      |> Concepto.add_retencion(@retencion)
+      |> Concepto.add_traslado(@traslado)
+
+    %Comprobante{Version: "4.0"}
+    |> Comprobante.add_concepto(concepto)
+    |> CFDI.new()
+    |> CFDI.to_xml()
+  end
+
+  defp xml_con_impuestos(:comprobante) do
+    impuestos =
+      %Impuestos{}
+      |> Impuestos.add_traslado(@traslado)
+      |> Impuestos.add_retencion(@retencion)
+
+    %Comprobante{Version: "4.0"}
+    |> Comprobante.add_impuesto(impuestos)
+    |> CFDI.new()
+    |> CFDI.to_xml()
+  end
+
+  describe "impuestos — el orden cambia según el padre" do
+    test "dentro de cfdi:Concepto, Traslados va antes que Retenciones" do
+      assert_orden(xml_con_impuestos(:concepto), ["cfdi:Traslados", "cfdi:Retenciones"])
+    end
+
+    test "en el cfdi:Impuestos del comprobante, Retenciones va antes que Traslados" do
+      assert_orden(xml_con_impuestos(:comprobante), ["cfdi:Retenciones", "cfdi:Traslados"])
     end
   end
 
