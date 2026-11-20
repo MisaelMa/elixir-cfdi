@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:leyendasFisc="http://www.sat.gob.mx/leyendasFiscales" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/leyendasFiscales http://www.sat.gob.mx/sitio_internet/cfd/leyendasFiscales/leyendasFisc.xsd" Version="4.0" Serie="A" Folio="100" Fecha="2024-03-01T10:00:00" FormaPago="01" NoCertificado="30001000000500003416" SubTotal="1000.00" Moneda="MXN" Total="1160.00" TipoDeComprobante="I" Exportacion="01" MetodoPago="PUE" LugarExpedicion="20000">
+  <cfdi:Emisor Rfc="EKU9003173C9" Nombre="ESCUELA KEMPER URGATE" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="URE180429TM6" Nombre="UNIVERSIDAD ROBOTICA ESPAÑOLA" DomicilioFiscalReceptor="86991" RegimenFiscalReceptor="601" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="01010101" Cantidad="1" ClaveUnidad="H87" Descripcion="Servicio de prueba" ValorUnitario="1000.00" Importe="1000.00" ObjetoImp="01"/>
+  </cfdi:Conceptos>
+  <cfdi:Complemento>
+    <leyendasFisc:LeyendasFiscales version="1.0">
+      <leyendasFisc:Leyenda disposicionFiscal="RESICO" norma="Art. 113-E" textoLeyenda="Contribuyente del regimen simplificado"/>
+      <leyendasFisc:Leyenda textoLeyenda="Segunda leyenda"/>
+    </leyendasFisc:LeyendasFiscales>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

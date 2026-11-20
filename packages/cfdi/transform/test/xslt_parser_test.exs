@@ -5,6 +5,8 @@ defmodule Cfdi.Transform.XsltParserTest do
 
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias Cfdi.Transform.XsltParser
 
   @files Path.expand("../../../files", __DIR__)
@@ -58,6 +60,141 @@ defmodule Cfdi.Transform.XsltParserTest do
       assert ns["pago20"] == "http://www.sat.gob.mx/Pagos20"
       assert ns["nomina12"] == "http://www.sat.gob.mx/nomina12"
       assert ns["vehiculousado"] == "http://www.sat.gob.mx/vehiculousado"
+    end
+  end
+
+  describe "xsl:include remotos (#4)" do
+    setup do
+      dir = Path.join(System.tmp_dir!(), "xslt_remote_#{System.unique_integer([:positive])}")
+      File.mkdir_p!(dir)
+      on_exit(fn -> File.rm_rf!(dir) end)
+
+      main = Path.join(dir, "main.xslt")
+
+      File.write!(main, """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:foo="http://example.com/foo">
+        <xsl:include href="http://www.sat.gob.mx/sitio_internet/cfd/donat/donat11.xslt"/>
+        <xsl:template match="foo:Bar">
+          <xsl:call-template name="Requerido">
+            <xsl:with-param name="valor" select="./@A"/>
+          </xsl:call-template>
+        </xsl:template>
+      </xsl:stylesheet>
+      """)
+
+      {:ok, main: main}
+    end
+
+    test "por defecto avisa con Logger.warning el href ignorado", %{main: main} do
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, %{templates: %{"foo:Bar" => _}}} = XsltParser.parse_file(main)
+        end)
+
+      assert log =~ "http://www.sat.gob.mx/sitio_internet/cfd/donat/donat11.xslt"
+    end
+
+    test "con strict: true devuelve {:error, {:remote_include, href}}", %{main: main} do
+      assert {:error,
+              {:remote_include, "http://www.sat.gob.mx/sitio_internet/cfd/donat/donat11.xslt"}} =
+               XsltParser.parse_file(main, strict: true)
+    end
+
+    test "un XSLT sin includes remotos no emite warning" do
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, _} = XsltParser.parse_file(@xslt_path)
+        end)
+
+      refute log =~ "include"
+    end
+  end
+
+  describe "xsl:if aplica a todas las reglas internas (#5)" do
+    @xslt """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:vv="http://www.sat.gob.mx/ventavehiculos">
+      <xsl:template match="vv:VentaVehiculos">
+        <xsl:call-template name="Requerido"><xsl:with-param name="valor" select="./@version"/></xsl:call-template>
+        <xsl:if test="./@version='1.1'">
+          <xsl:call-template name="Requerido"><xsl:with-param name="valor" select="./@Niv"/></xsl:call-template>
+        </xsl:if>
+      </xsl:template>
+    </xsl:stylesheet>
+    """
+
+    test "las reglas :attr dentro de xsl:if reciben :condition" do
+      {:ok, %{templates: t}} = XsltParser.parse(@xslt)
+      [version, niv] = t["vv:VentaVehiculos"].rules
+
+      refute Map.has_key?(version, :condition)
+      assert %{type: :attr, name: "Niv", condition: "@version='1.1'"} = niv
+    end
+
+    test "ventavehiculos11.xslt real: Niv condicionado a version" do
+      {:ok, %{templates: t}} = XsltParser.parse_file(@xslt_path)
+      niv = Enum.find(t["ventavehiculos:VentaVehiculos"].rules, &(&1[:name] == "Niv"))
+      assert niv.condition == "@version='1.1'"
+    end
+  end
+
+  describe "xsl:if con tests no soportados (#10)" do
+    defp xslt_with_test(test_expr) do
+      """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:foo="http://example.com/foo">
+        <xsl:template match="foo:Bar">
+          <xsl:if test="#{test_expr}">
+            <xsl:call-template name="Requerido"><xsl:with-param name="valor" select="./@B"/></xsl:call-template>
+          </xsl:if>
+        </xsl:template>
+      </xsl:stylesheet>
+      """
+    end
+
+    defp write_tmp!(content) do
+      path = Path.join(System.tmp_dir!(), "xslt_if_#{System.unique_integer([:positive])}.xslt")
+      File.write!(path, content)
+      on_exit(fn -> File.rm(path) end)
+      path
+    end
+
+    test "not(...) es soportado: sin warning y con strict: true" do
+      path = write_tmp!(xslt_with_test("not(./@A='x') and not(./foo:Baz)"))
+
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, %{templates: %{"foo:Bar" => _}}} =
+                   XsltParser.parse_file(path, strict: true)
+        end)
+
+      refute log =~ "xsl:if"
+    end
+
+    test "un test no soportado avisa con Logger.warning por defecto" do
+      path = write_tmp!(xslt_with_test("contains(./@A, 'x')"))
+
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, %{templates: %{"foo:Bar" => _}}} = XsltParser.parse_file(path)
+        end)
+
+      assert log =~ "contains(./@A, 'x')"
+    end
+
+    test "un test no soportado con strict: true devuelve {:error, {:unsupported_if_test, test}}" do
+      path = write_tmp!(xslt_with_test("count(./foo:Baz) &gt; 1"))
+
+      assert {:error, {:unsupported_if_test, "count(./foo:Baz) > 1"}} =
+               XsltParser.parse_file(path, strict: true)
+    end
+
+    test "not(contains(...)) tambien se detecta como no soportado" do
+      path = write_tmp!(xslt_with_test("not(contains(./@A, 'x'))"))
+
+      assert {:error, {:unsupported_if_test, "not(contains(./@A, 'x'))"}} =
+               XsltParser.parse_file(path, strict: true)
     end
   end
 end

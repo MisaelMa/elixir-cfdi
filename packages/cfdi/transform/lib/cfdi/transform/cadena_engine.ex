@@ -108,6 +108,15 @@ defmodule Cfdi.Transform.CadenaEngine do
 
   def process_node(_, _), do: []
 
+  # La condicion de un `xsl:if` aplica a toda regla (:attr, :text, :child).
+  defp apply_rule(node, %{condition: _} = rule, registry) do
+    if condition_skips?(node, rule) do
+      []
+    else
+      apply_rule(node, Map.delete(rule, :condition), registry)
+    end
+  end
+
   defp apply_rule(node, %{type: :attr} = rule, _registry) do
     {_t, attrs, _} = node
     value = attr(attrs, rule.name)
@@ -131,31 +140,45 @@ defmodule Cfdi.Transform.CadenaEngine do
   end
 
   defp apply_rule(node, %{type: :child} = rule, registry) do
-    if condition_skips?(node, rule) do
-      []
-    else
-      cond do
-        Map.get(rule, :wildcard, false) ->
-          process_wildcard(node, registry)
+    cond do
+      Map.get(rule, :wildcard, false) ->
+        process_wildcard(node, registry)
 
-        true ->
-          elements =
-            if Map.get(rule, :descendant, false) do
-              resolve_descendant(node, last_segment(rule.select))
-            else
-              resolve_select(node, rule.select)
-            end
+      true ->
+        elements =
+          if Map.get(rule, :descendant, false) do
+            resolve_descendant(node, last_segment(rule.select))
+          else
+            resolve_select(node, rule.select)
+          end
 
-          process_child_elements(elements, rule, registry)
-      end
+        process_child_elements(elements, rule, registry)
     end
   end
 
-  defp condition_skips?(node, %{condition: cond_select}) when is_binary(cond_select) do
-    resolve_select(node, cond_select) == []
+  defp condition_skips?(node, %{condition: condition}) when is_binary(condition) do
+    not eval_condition(node, condition)
   end
 
   defp condition_skips?(_node, _rule), do: false
+
+  # Subconjunto de XPath de `xsl:if test` (ver `Cfdi.Transform.IfTest`). Un test no
+  # soportado cae a "la ruta existe" (el parser ya lo aviso o fallo con `strict`).
+  defp eval_condition(node, condition) do
+    case Cfdi.Transform.IfTest.parse(condition) do
+      {:ok, ast} -> eval_ast(node, ast)
+      {:error, :unsupported} -> resolve_select(node, String.trim(condition)) != []
+    end
+  end
+
+  defp eval_ast(node, {:or, parts}), do: Enum.any?(parts, &eval_ast(node, &1))
+  defp eval_ast(node, {:and, parts}), do: Enum.all?(parts, &eval_ast(node, &1))
+  defp eval_ast(node, {:not, inner}), do: not eval_ast(node, inner)
+
+  defp eval_ast({_t, attrs, _}, {:attr_eq, name, value}), do: attr(attrs, name) == value
+  defp eval_ast({_t, attrs, _}, {:attr_ne, name, value}), do: attr(attrs, name) != value
+  defp eval_ast({_t, attrs, _}, {:attr, name}), do: attr(attrs, name) != nil
+  defp eval_ast(node, {:path, path}), do: resolve_select(node, path) != []
 
   defp process_child_elements(elements, rule, registry) do
     cond do

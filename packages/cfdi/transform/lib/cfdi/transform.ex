@@ -20,6 +20,19 @@ defmodule Cfdi.Transform do
         |> Cfdi.Transform.Transform.run!()
   """
 
+  @doc """
+  Ruta del `cadenaoriginal_4_0.xslt` oficial del SAT incluido en `priv/`, ya
+  LOCALIZADO (complementos descargados y `href` relativos). Se regenera con
+  `mix cfdi.xslt.update`.
+
+      Cfdi.Transform.Transform.new()
+      |> Cfdi.Transform.Transform.xsl(Cfdi.Transform.bundled_xslt())
+  """
+  @spec bundled_xslt() :: String.t()
+  def bundled_xslt do
+    Path.join(:code.priv_dir(:cfdi_transform), "xslt/4.0/cadenaoriginal_4_0.xslt")
+  end
+
   defdelegate normalize_space(s), to: Cfdi.Transform.CadenaEngine
   defdelegate requerido(value), to: Cfdi.Transform.CadenaEngine
   defdelegate opcional(value), to: Cfdi.Transform.CadenaEngine

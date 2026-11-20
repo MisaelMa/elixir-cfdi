@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ventavehiculos="http://www.sat.gob.mx/ventavehiculos" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/ventavehiculos http://www.sat.gob.mx/sitio_internet/cfd/ventavehiculos/ventavehiculos11.xsd" Version="4.0" Serie="A" Folio="100" Fecha="2024-03-01T10:00:00" FormaPago="01" NoCertificado="30001000000500003416" SubTotal="1000.00" Moneda="MXN" Total="1160.00" TipoDeComprobante="I" Exportacion="01" MetodoPago="PUE" LugarExpedicion="20000">
+  <cfdi:Emisor Rfc="EKU9003173C9" Nombre="ESCUELA KEMPER URGATE" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="URE180429TM6" Nombre="UNIVERSIDAD ROBOTICA ESPAÑOLA" DomicilioFiscalReceptor="86991" RegimenFiscalReceptor="601" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="01010101" Cantidad="1" ClaveUnidad="H87" Descripcion="Servicio de prueba" ValorUnitario="1000.00" Importe="1000.00" ObjetoImp="01"/>
+  </cfdi:Conceptos>
+  <cfdi:Complemento>
+    <ventavehiculos:VentaVehiculos version="1.1" ClaveVehicular="ABC1234" Niv="1HGCM82633A004352">
+      <ventavehiculos:InformacionAduanera numero="12 34 5678 9012345" fecha="2023-05-01" aduana="Veracruz"/>
+      <ventavehiculos:Parte cantidad="2" descripcion="Llanta" noIdentificacion="LL01" valorUnitario="100.00" importe="200.00"/>
+    </ventavehiculos:VentaVehiculos>
+  </cfdi:Complemento>
+</cfdi:Comprobante>
