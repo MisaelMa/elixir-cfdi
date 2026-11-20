@@ -575,7 +575,15 @@ defmodule CFDI do
     # separar atributos de hijos. Ver `sort_children/3`.
     {orden_explicito, body} = Map.pop(body, :__order__)
 
-    {attr_pairs, child_pairs} = Enum.split_with(body, fn {k, _} -> is_atom(k) end)
+    # Un `nil` es "sin valor": se omite (atributo o hijo). Emitirlo como `attr=""`
+    # rompe la validación XSD de los opcionales con patrón (p. ej. `rfcPago` de
+    # iedu, tipo tRFC). El `""` explícito SÍ se conserva: ningún XSD del SAT lo
+    # exige vacío, pero addendas y complementos no modelados lo traen tal cual y
+    # `from_xml |> to_xml` no debe alterarlos.
+    {attr_pairs, child_pairs} =
+      body
+      |> Enum.reject(fn {_, v} -> is_nil(v) end)
+      |> Enum.split_with(fn {k, _} -> is_atom(k) end)
 
     attrs = Map.new(attr_pairs, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
 
