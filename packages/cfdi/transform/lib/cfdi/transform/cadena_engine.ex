@@ -108,6 +108,15 @@ defmodule Cfdi.Transform.CadenaEngine do
 
   def process_node(_, _), do: []
 
+  # La condicion de un `xsl:if` aplica a toda regla (:attr, :text, :child).
+  defp apply_rule(node, %{condition: _} = rule, registry) do
+    if condition_skips?(node, rule) do
+      []
+    else
+      apply_rule(node, Map.delete(rule, :condition), registry)
+    end
+  end
+
   defp apply_rule(node, %{type: :attr} = rule, _registry) do
     {_t, attrs, _} = node
     value = attr(attrs, rule.name)
@@ -131,31 +140,66 @@ defmodule Cfdi.Transform.CadenaEngine do
   end
 
   defp apply_rule(node, %{type: :child} = rule, registry) do
-    if condition_skips?(node, rule) do
-      []
-    else
-      cond do
-        Map.get(rule, :wildcard, false) ->
-          process_wildcard(node, registry)
+    cond do
+      Map.get(rule, :wildcard, false) ->
+        process_wildcard(node, registry)
 
-        true ->
-          elements =
-            if Map.get(rule, :descendant, false) do
-              resolve_descendant(node, last_segment(rule.select))
-            else
-              resolve_select(node, rule.select)
-            end
+      true ->
+        elements =
+          if Map.get(rule, :descendant, false) do
+            resolve_descendant(node, last_segment(rule.select))
+          else
+            resolve_select(node, rule.select)
+          end
 
-          process_child_elements(elements, rule, registry)
-      end
+        process_child_elements(elements, rule, registry)
     end
   end
 
-  defp condition_skips?(node, %{condition: cond_select}) when is_binary(cond_select) do
-    resolve_select(node, cond_select) == []
+  defp condition_skips?(node, %{condition: condition}) when is_binary(condition) do
+    not eval_condition(node, condition)
   end
 
   defp condition_skips?(_node, _rule), do: false
+
+  # Subconjunto de XPath usado por `xsl:if test` en los XSLT del SAT:
+  #   @attr='valor' | @attr!='valor' | @attr | ruta/de/hijos | expr and expr | expr or expr
+  defp eval_condition(node, condition) do
+    condition = String.trim(condition)
+
+    cond do
+      parts = split_logical(condition, " or ") ->
+        Enum.any?(parts, &eval_condition(node, &1))
+
+      parts = split_logical(condition, " and ") ->
+        Enum.all?(parts, &eval_condition(node, &1))
+
+      m = Regex.run(~r/^@([\w:.\-]+)\s*(!?=)\s*(?:'([^']*)'|"([^"]*)")$/, condition) ->
+        [_, name, op | vals] = m
+        expected = vals |> Enum.reject(&(&1 == "")) |> List.first() || ""
+        {_t, attrs, _} = node
+        actual = attr(attrs, name)
+
+        case op do
+          "=" -> actual == expected
+          "!=" -> actual != expected
+        end
+
+      m = Regex.run(~r/^@([\w:.\-]+)$/, condition) ->
+        {_t, attrs, _} = node
+        attr(attrs, Enum.at(m, 1)) != nil
+
+      true ->
+        resolve_select(node, condition) != []
+    end
+  end
+
+  defp split_logical(condition, sep) do
+    case String.split(condition, sep) do
+      [_single] -> nil
+      parts -> parts
+    end
+  end
 
   defp process_child_elements(elements, rule, registry) do
     cond do

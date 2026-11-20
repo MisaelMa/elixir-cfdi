@@ -36,11 +36,19 @@ defmodule Cfdi.Transform.Transform do
     %{t | xml_path: nil, xml_content: xml}
   end
 
-  @doc "Carga la hoja XSLT (equivale a `.xsl(file)` de Node)."
-  @spec xsl(t(), String.t()) :: t()
-  def xsl(%__MODULE__{} = t, xsl_path) when is_binary(xsl_path) do
-    {:ok, registry} = XsltParser.parse_file(xsl_path)
-    %{t | registry: registry}
+  @doc """
+  Carga la hoja XSLT (equivale a `.xsl(file)` de Node).
+
+  Acepta las opciones de `Cfdi.Transform.XsltParser.parse_file/2`; con
+  `strict: true` levanta `RuntimeError` si hay un `xsl:include` remoto.
+  """
+  @spec xsl(t(), String.t(), keyword()) :: t()
+  def xsl(%__MODULE__{} = t, xsl_path, opts \\ []) when is_binary(xsl_path) do
+    case XsltParser.parse_file(xsl_path, opts) do
+      {:ok, registry} -> %{t | registry: registry}
+      {:error, {:remote_include, href}} -> raise "include remoto no soportado: #{href}"
+      {:error, reason} -> raise "No se pudo leer el XSLT: #{inspect(reason)}"
+    end
   end
 
   @doc "Alias de `xsl/2` (paridad con `.json(file)` de Node)."

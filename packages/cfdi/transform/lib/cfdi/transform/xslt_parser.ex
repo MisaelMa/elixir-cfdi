@@ -17,6 +17,8 @@ defmodule Cfdi.Transform.XsltParser do
   Lectura recursiva de `xsl:include` con detección de ciclos via `MapSet`.
   """
 
+  require Logger
+
   alias Cfdi.Transform.Types
 
   @named_templates ["Requerido", "Opcional", "ManejaEspacios"]
@@ -25,11 +27,23 @@ defmodule Cfdi.Transform.XsltParser do
   Parsea un archivo XSLT desde disco, siguiendo `xsl:include`s relativos.
 
   Devuelve `{:ok, registry}` con `templates` y `namespaces`.
+
+  Los `xsl:include` con `href` remoto (`http://` o `https://`) NO se descargan:
+  el XSLT debe estar *localizado* (ver README). Por defecto se registra un
+  `Logger.warning` con cada `href` ignorado.
+
+  ## Opciones
+
+    * `:strict` - si es `true`, un include remoto produce
+      `{:error, {:remote_include, href}}` en lugar de ignorarse. Por defecto `false`.
   """
-  @spec parse_file(String.t()) :: {:ok, Types.template_registry()} | {:error, term()}
-  def parse_file(main_xslt_path) when is_binary(main_xslt_path) do
+  @spec parse_file(String.t(), keyword()) ::
+          {:ok, Types.template_registry()} | {:error, term()}
+  def parse_file(main_xslt_path, opts \\ []) when is_binary(main_xslt_path) do
+    strict = Keyword.get(opts, :strict, false)
+
     {template_elements, stylesheet_attrs} =
-      collect_all_template_elements(main_xslt_path, MapSet.new(), [], nil)
+      collect_all_template_elements(main_xslt_path, MapSet.new(), [], nil, strict)
 
     namespaces =
       case stylesheet_attrs do
@@ -58,6 +72,8 @@ defmodule Cfdi.Transform.XsltParser do
     {:ok, %{templates: templates, namespaces: namespaces}}
   rescue
     e -> {:error, e}
+  catch
+    {:remote_include, _href} = reason -> {:error, reason}
   end
 
   @doc """
@@ -111,7 +127,7 @@ defmodule Cfdi.Transform.XsltParser do
     end
   end
 
-  defp collect_all_template_elements(path, visited, acc, stylesheet_attrs) do
+  defp collect_all_template_elements(path, visited, acc, stylesheet_attrs, strict) do
     resolved = Path.expand(path)
 
     if MapSet.member?(visited, resolved) do
@@ -141,14 +157,22 @@ defmodule Cfdi.Transform.XsltParser do
 
                       String.starts_with?(href, "http://") or
                           String.starts_with?(href, "https://") ->
-                        # Remote includes ignored (matches Node behavior:
-                        # `fs.readFileSync` would fail; the localized
-                        # `cadenaoriginal.xslt` uses relative paths).
+                        # No se descargan includes remotos: el XSLT debe estar
+                        # localizado. (Node intenta leer la URL como ruta local y
+                        # lanza ENOENT; aqui no se calla: warning, o error si `strict`.)
+                        if strict, do: throw({:remote_include, href})
+
+                        Logger.warning(
+                          "xsl:include remoto ignorado: #{href}. " <>
+                            "Localiza el XSLT (descarga los complementos y usa href relativos) " <>
+                            "o usa strict: true para fallar."
+                        )
+
                         {a, v, s}
 
                       true ->
                         include_path = Path.expand(href, Path.dirname(resolved))
-                        {a2, s2} = collect_all_template_elements(include_path, v, a, s)
+                        {a2, s2} = collect_all_template_elements(include_path, v, a, s, strict)
                         # Already updated `v` inside via Path.expand; we don't
                         # have the new MapSet back, so we re-add and rely on
                         # the inner call's visited check.
@@ -227,11 +251,18 @@ defmodule Cfdi.Transform.XsltParser do
             if test do
               inner = extract_rules_from_elements(children, [])
 
+              condition = normalize_select(test)
+
               Enum.reduce(inner, acc, fn r, a ->
+                # La condicion aplica a TODAS las reglas internas (:attr, :text, :child).
+                # Con xsl:if anidados se combinan con `and`.
                 r =
                   case r do
-                    %{type: :child} = c -> Map.put(c, :condition, normalize_select(test))
-                    other -> other
+                    %{condition: inner_cond} ->
+                      %{r | condition: condition <> " and " <> inner_cond}
+
+                    _ ->
+                      Map.put(r, :condition, condition)
                   end
 
                 a ++ [r]
