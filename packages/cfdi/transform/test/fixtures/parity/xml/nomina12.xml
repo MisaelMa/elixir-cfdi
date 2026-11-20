@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:nomina12="http://www.sat.gob.mx/nomina12" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/nomina12 http://www.sat.gob.mx/sitio_internet/cfd/nomina/nomina12.xsd" Version="4.0" Serie="A" Folio="100" Fecha="2024-03-01T10:00:00" FormaPago="01" NoCertificado="30001000000500003416" SubTotal="1000.00" Moneda="MXN" Total="950.00" TipoDeComprobante="N" Exportacion="01" MetodoPago="PUE" LugarExpedicion="20000">
+  <cfdi:Emisor Rfc="EKU9003173C9" Nombre="ESCUELA KEMPER URGATE" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="URE180429TM6" Nombre="UNIVERSIDAD ROBOTICA ESPAÑOLA" DomicilioFiscalReceptor="86991" RegimenFiscalReceptor="601" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="01010101" Cantidad="1" ClaveUnidad="H87" Descripcion="Servicio de prueba" ValorUnitario="1000.00" Importe="1000.00" ObjetoImp="01"/>
+  </cfdi:Conceptos>
+  <cfdi:Complemento>
+    <nomina12:Nomina Version="1.2" TipoNomina="O" FechaPago="2024-03-15" FechaInicialPago="2024-03-01" FechaFinalPago="2024-03-15" NumDiasPagados="15.000" TotalPercepciones="1000.00" TotalDeducciones="100.00" TotalOtrosPagos="50.00">
+      <nomina12:Emisor Curp="XEXX010101HNEXXXA4" RegistroPatronal="Z1234567890" RfcPatronOrigen="EKU9003173C9"/>
+      <nomina12:Receptor Curp="XEXX010101HNEXXXA4" NumSeguridadSocial="12345678901" FechaInicioRelLaboral="2020-01-01" Antigüedad="P219W" TipoContrato="01" Sindicalizado="No" TipoJornada="01" TipoRegimen="02" NumEmpleado="0001" Departamento="Ventas" Puesto="Vendedor" RiesgoPuesto="1" PeriodicidadPago="04" Banco="012" CuentaBancaria="12345678901234567" SalarioBaseCotApor="300.00" SalarioDiarioIntegrado="310.50" ClaveEntFed="JAL"/>
+      <nomina12:Percepciones TotalSueldos="900.00" TotalGravado="800.00" TotalExento="100.00">
+        <nomina12:Percepcion TipoPercepcion="001" Clave="P001" Concepto="Sueldos" ImporteGravado="700.00" ImporteExento="0.00"/>
+        <nomina12:Percepcion TipoPercepcion="019" Clave="P019" Concepto="Horas extra" ImporteGravado="100.00" ImporteExento="100.00">
+          <nomina12:HorasExtra Dias="2" TipoHoras="01" HorasExtra="4" ImportePagado="200.00"/>
+        </nomina12:Percepcion>
+      </nomina12:Percepciones>
+      <nomina12:Deducciones TotalOtrasDeducciones="40.00" TotalImpuestosRetenidos="60.00">
+        <nomina12:Deduccion TipoDeduccion="002" Clave="D002" Concepto="ISR" Importe="60.00"/>
+        <nomina12:Deduccion TipoDeduccion="001" Clave="D001" Concepto="Seguridad social" Importe="40.00"/>
+      </nomina12:Deducciones>
+      <nomina12:OtrosPagos>
+        <nomina12:OtroPago TipoOtroPago="002" Clave="O002" Concepto="Subsidio" Importe="50.00">
+          <nomina12:SubsidioAlEmpleo SubsidioCausado="50.00"/>
+        </nomina12:OtroPago>
+      </nomina12:OtrosPagos>
+    </nomina12:Nomina>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

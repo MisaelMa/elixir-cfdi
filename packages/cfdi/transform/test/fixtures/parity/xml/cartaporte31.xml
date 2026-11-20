@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cartaporte31="http://www.sat.gob.mx/CartaPorte31" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/CartaPorte31 http://www.sat.gob.mx/sitio_internet/cfd/CartaPorte/CartaPorte31.xsd" Version="4.0" Serie="A" Folio="100" Fecha="2024-03-01T10:00:00" FormaPago="01" NoCertificado="30001000000500003416" SubTotal="1000.00" Moneda="MXN" Total="1160.00" TipoDeComprobante="I" Exportacion="01" MetodoPago="PUE" LugarExpedicion="20000">
+  <cfdi:Emisor Rfc="EKU9003173C9" Nombre="ESCUELA KEMPER URGATE" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="URE180429TM6" Nombre="UNIVERSIDAD ROBOTICA ESPAÑOLA" DomicilioFiscalReceptor="86991" RegimenFiscalReceptor="601" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="01010101" Cantidad="1" ClaveUnidad="H87" Descripcion="Servicio de prueba" ValorUnitario="1000.00" Importe="1000.00" ObjetoImp="01"/>
+  </cfdi:Conceptos>
+  <cfdi:Complemento>
+    <cartaporte31:CartaPorte Version="3.1" IdCCP="CCC12345-6789-1234-5678-123456789012" TranspInternac="No" TotalDistRec="120.50">
+      <cartaporte31:Ubicaciones>
+        <cartaporte31:Ubicacion TipoUbicacion="Origen" IDUbicacion="OR000001" RFCRemitenteDestinatario="EKU9003173C9" FechaHoraSalidaLlegada="2024-03-01T08:00:00">
+          <cartaporte31:Domicilio Calle="Calle 1" NumeroExterior="10" Colonia="0123" Municipio="039" Estado="JAL" Pais="MEX" CodigoPostal="44100"/>
+        </cartaporte31:Ubicacion>
+        <cartaporte31:Ubicacion TipoUbicacion="Destino" IDUbicacion="DE000001" RFCRemitenteDestinatario="URE180429TM6" FechaHoraSalidaLlegada="2024-03-02T18:00:00" DistanciaRecorrida="120.50">
+          <cartaporte31:Domicilio Calle="Calle 2" Estado="CMX" Pais="MEX" CodigoPostal="06600"/>
+        </cartaporte31:Ubicacion>
+      </cartaporte31:Ubicaciones>
+      <cartaporte31:Mercancias PesoBrutoTotal="150.000" UnidadPeso="KGM" NumTotalMercancias="1">
+        <cartaporte31:Mercancia BienesTransp="11121900" Descripcion="Bienes" Cantidad="1.000000" ClaveUnidad="H87" PesoEnKg="150.000">
+          <cartaporte31:CantidadTransporta Cantidad="1.000000" IDOrigen="OR000001" IDDestino="DE000001"/>
+        </cartaporte31:Mercancia>
+        <cartaporte31:Autotransporte PermSCT="TPAF01" NumPermisoSCT="NUM12345">
+          <cartaporte31:IdentificacionVehicular ConfigVehicular="C2" PesoBrutoVehicular="12.50" PlacaVM="ABC123" AnioModeloVM="2020"/>
+          <cartaporte31:Seguros AseguraRespCivil="Aseguradora" PolizaRespCivil="POL123"/>
+          <cartaporte31:Remolques>
+            <cartaporte31:Remolque SubTipoRem="CTR001" Placa="REM123"/>
+          </cartaporte31:Remolques>
+        </cartaporte31:Autotransporte>
+      </cartaporte31:Mercancias>
+      <cartaporte31:FiguraTransporte>
+        <cartaporte31:TiposFigura TipoFigura="01" RFCFigura="XAXX010101000" NumLicencia="LIC123" NombreFigura="Operador Uno"/>
+      </cartaporte31:FiguraTransporte>
+    </cartaporte31:CartaPorte>
+  </cfdi:Complemento>
+</cfdi:Comprobante>
