@@ -162,44 +162,23 @@ defmodule Cfdi.Transform.CadenaEngine do
 
   defp condition_skips?(_node, _rule), do: false
 
-  # Subconjunto de XPath usado por `xsl:if test` en los XSLT del SAT:
-  #   @attr='valor' | @attr!='valor' | @attr | ruta/de/hijos | expr and expr | expr or expr
+  # Subconjunto de XPath de `xsl:if test` (ver `Cfdi.Transform.IfTest`). Un test no
+  # soportado cae a "la ruta existe" (el parser ya lo aviso o fallo con `strict`).
   defp eval_condition(node, condition) do
-    condition = String.trim(condition)
-
-    cond do
-      parts = split_logical(condition, " or ") ->
-        Enum.any?(parts, &eval_condition(node, &1))
-
-      parts = split_logical(condition, " and ") ->
-        Enum.all?(parts, &eval_condition(node, &1))
-
-      m = Regex.run(~r/^@([\w:.\-]+)\s*(!?=)\s*(?:'([^']*)'|"([^"]*)")$/, condition) ->
-        [_, name, op | vals] = m
-        expected = vals |> Enum.reject(&(&1 == "")) |> List.first() || ""
-        {_t, attrs, _} = node
-        actual = attr(attrs, name)
-
-        case op do
-          "=" -> actual == expected
-          "!=" -> actual != expected
-        end
-
-      m = Regex.run(~r/^@([\w:.\-]+)$/, condition) ->
-        {_t, attrs, _} = node
-        attr(attrs, Enum.at(m, 1)) != nil
-
-      true ->
-        resolve_select(node, condition) != []
+    case Cfdi.Transform.IfTest.parse(condition) do
+      {:ok, ast} -> eval_ast(node, ast)
+      {:error, :unsupported} -> resolve_select(node, String.trim(condition)) != []
     end
   end
 
-  defp split_logical(condition, sep) do
-    case String.split(condition, sep) do
-      [_single] -> nil
-      parts -> parts
-    end
-  end
+  defp eval_ast(node, {:or, parts}), do: Enum.any?(parts, &eval_ast(node, &1))
+  defp eval_ast(node, {:and, parts}), do: Enum.all?(parts, &eval_ast(node, &1))
+  defp eval_ast(node, {:not, inner}), do: not eval_ast(node, inner)
+
+  defp eval_ast({_t, attrs, _}, {:attr_eq, name, value}), do: attr(attrs, name) == value
+  defp eval_ast({_t, attrs, _}, {:attr_ne, name, value}), do: attr(attrs, name) != value
+  defp eval_ast({_t, attrs, _}, {:attr, name}), do: attr(attrs, name) != nil
+  defp eval_ast(node, {:path, path}), do: resolve_select(node, path) != []
 
   defp process_child_elements(elements, rule, registry) do
     cond do

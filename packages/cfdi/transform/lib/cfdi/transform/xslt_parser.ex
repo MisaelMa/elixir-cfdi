@@ -41,6 +41,7 @@ defmodule Cfdi.Transform.XsltParser do
           {:ok, Types.template_registry()} | {:error, term()}
   def parse_file(main_xslt_path, opts \\ []) when is_binary(main_xslt_path) do
     strict = Keyword.get(opts, :strict, false)
+    Process.put(:xslt_parser_strict, strict)
 
     {template_elements, stylesheet_attrs} =
       collect_all_template_elements(main_xslt_path, MapSet.new(), [], nil, strict)
@@ -74,6 +75,9 @@ defmodule Cfdi.Transform.XsltParser do
     e -> {:error, e}
   catch
     {:remote_include, _href} = reason -> {:error, reason}
+    {:unsupported_if_test, _test} = reason -> {:error, reason}
+  after
+    Process.delete(:xslt_parser_strict)
   end
 
   @doc """
@@ -252,6 +256,7 @@ defmodule Cfdi.Transform.XsltParser do
               inner = extract_rules_from_elements(children, [])
 
               condition = normalize_select(test)
+              check_if_test!(test)
 
               Enum.reduce(inner, acc, fn r, a ->
                 # La condicion aplica a TODAS las reglas internas (:attr, :text, :child).
@@ -259,7 +264,7 @@ defmodule Cfdi.Transform.XsltParser do
                 r =
                   case r do
                     %{condition: inner_cond} ->
-                      %{r | condition: condition <> " and " <> inner_cond}
+                      %{r | condition: "(" <> condition <> ") and (" <> inner_cond <> ")"}
 
                     _ ->
                       Map.put(r, :condition, condition)
@@ -278,6 +283,19 @@ defmodule Cfdi.Transform.XsltParser do
       _, acc ->
         acc
     end)
+  end
+
+  # Un test fuera del subconjunto soportado no se puede evaluar: igual que un
+  # include remoto, se avisa (o falla con `strict: true`) en vez de aproximarlo.
+  defp check_if_test!(test) do
+    unless Cfdi.Transform.IfTest.supported?(test) do
+      if Process.get(:xslt_parser_strict, false), do: throw({:unsupported_if_test, test})
+
+      Logger.warning(
+        "xsl:if con test no soportado: #{test}. Se aproxima a \"la ruta existe\", " <>
+          "lo que puede alterar la cadena original. Usa strict: true para fallar."
+      )
+    end
   end
 
   defp parse_call_template(attrs, children) do

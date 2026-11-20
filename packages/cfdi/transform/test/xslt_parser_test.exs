@@ -138,4 +138,63 @@ defmodule Cfdi.Transform.XsltParserTest do
       assert niv.condition == "@version='1.1'"
     end
   end
+
+  describe "xsl:if con tests no soportados (#10)" do
+    defp xslt_with_test(test_expr) do
+      """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:foo="http://example.com/foo">
+        <xsl:template match="foo:Bar">
+          <xsl:if test="#{test_expr}">
+            <xsl:call-template name="Requerido"><xsl:with-param name="valor" select="./@B"/></xsl:call-template>
+          </xsl:if>
+        </xsl:template>
+      </xsl:stylesheet>
+      """
+    end
+
+    defp write_tmp!(content) do
+      path = Path.join(System.tmp_dir!(), "xslt_if_#{System.unique_integer([:positive])}.xslt")
+      File.write!(path, content)
+      on_exit(fn -> File.rm(path) end)
+      path
+    end
+
+    test "not(...) es soportado: sin warning y con strict: true" do
+      path = write_tmp!(xslt_with_test("not(./@A='x') and not(./foo:Baz)"))
+
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, %{templates: %{"foo:Bar" => _}}} =
+                   XsltParser.parse_file(path, strict: true)
+        end)
+
+      refute log =~ "xsl:if"
+    end
+
+    test "un test no soportado avisa con Logger.warning por defecto" do
+      path = write_tmp!(xslt_with_test("contains(./@A, 'x')"))
+
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, %{templates: %{"foo:Bar" => _}}} = XsltParser.parse_file(path)
+        end)
+
+      assert log =~ "contains(./@A, 'x')"
+    end
+
+    test "un test no soportado con strict: true devuelve {:error, {:unsupported_if_test, test}}" do
+      path = write_tmp!(xslt_with_test("count(./foo:Baz) &gt; 1"))
+
+      assert {:error, {:unsupported_if_test, "count(./foo:Baz) > 1"}} =
+               XsltParser.parse_file(path, strict: true)
+    end
+
+    test "not(contains(...)) tambien se detecta como no soportado" do
+      path = write_tmp!(xslt_with_test("not(contains(./@A, 'x'))"))
+
+      assert {:error, {:unsupported_if_test, "not(contains(./@A, 'x'))"}} =
+               XsltParser.parse_file(path, strict: true)
+    end
+  end
 end

@@ -91,4 +91,7 @@ Los tests de este paquete lo hacen con fixtures por complemento
 
 - Solo `http(s)` remoto no se sigue (ver arriba); los includes relativos sí.
 - `xsl:if` soporta tests por atributo (`@a='v'`, `@a!='v'`, `@a`), por nodo
-  (`./ns:Nodo`) y combinaciones con `and`/`or`; otras expresiones XPath no.
+  (`./ns:Nodo`), `not(...)`, parentesis y combinaciones con `and`/`or`
+  (precedencia XPath). Otras expresiones (`contains()`, `count()`, `>`, `[...]`)
+  NO se evaluan: `XsltParser.parse_file/2` registra un `Logger.warning` con el
+  test, o devuelve `{:error, {:unsupported_if_test, test}}` con `strict: true`.

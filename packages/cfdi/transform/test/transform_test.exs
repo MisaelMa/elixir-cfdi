@@ -143,6 +143,54 @@ defmodule Cfdi.Transform.TransformTest do
     end
   end
 
+  describe "xsl:if con not() y precedencia (#10)" do
+    defp if_cadena(test_expr, xml_attrs) do
+      xslt = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:vv="http://www.sat.gob.mx/ventavehiculos">
+        <xsl:template match="vv:VentaVehiculos">
+          <xsl:call-template name="Requerido"><xsl:with-param name="valor" select="./@A"/></xsl:call-template>
+          <xsl:if test="#{test_expr}">
+            <xsl:call-template name="Requerido"><xsl:with-param name="valor" select="./@Niv"/></xsl:call-template>
+          </xsl:if>
+        </xsl:template>
+      </xsl:stylesheet>
+      """
+
+      xml =
+        ~s(<?xml version="1.0" encoding="UTF-8"?><vv:VentaVehiculos xmlns:vv="http://www.sat.gob.mx/ventavehiculos" A="a" Niv="N" #{xml_attrs}/>)
+
+      {:ok, registry} = Cfdi.Transform.XsltParser.parse(xslt)
+
+      Transform.new()
+      |> Map.put(:registry, registry)
+      |> Transform.xml_string(xml)
+      |> Transform.run!()
+    end
+
+    test "not(@x) emite cuando el atributo no existe" do
+      assert if_cadena("not(./@X)", "") == "||a|N||"
+      assert if_cadena("not(./@X)", ~s(X="1")) == "||a||"
+    end
+
+    test "not(@x='v') niega la comparacion" do
+      assert if_cadena("not(./@X='1')", ~s(X="1")) == "||a||"
+      assert if_cadena("not(./@X='1')", ~s(X="2")) == "||a|N||"
+    end
+
+    test "not() combinado con and/or y parentesis" do
+      assert if_cadena("not(./@X) and ./@Y='1'", ~s(Y="1")) == "||a|N||"
+      assert if_cadena("not(./@X) and ./@Y='1'", ~s(X="1" Y="1")) == "||a||"
+      assert if_cadena("./@X='1' or (./@Y='1' and not(./@Z))", ~s(Y="1")) == "||a|N||"
+      assert if_cadena("./@X='1' or (./@Y='1' and not(./@Z))", ~s(Y="1" Z="1")) == "||a||"
+    end
+
+    test "or con and respeta la precedencia XPath (and antes que or)" do
+      assert if_cadena("./@X='1' or ./@Y='1' and ./@Z='1'", ~s(X="1")) == "||a|N||"
+      assert if_cadena("./@X='1' or ./@Y='1' and ./@Z='1'", ~s(Y="1")) == "||a||"
+    end
+  end
+
   defp run_if_saxon(%{saxon_available: false}, _fun) do
     IO.puts("\n  >> Saxon-HE no disponible (sin SAXON_JAR o sin java en PATH); test saltado.")
     :ok
