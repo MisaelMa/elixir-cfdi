@@ -198,6 +198,18 @@ defmodule CFDI do
 
   Espejo de `options.xslt` en el constructor de
   [`CFDI`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L29) de Node.
+
+  > #### El XSLT debe estar LOCALIZADO {: .warning}
+  >
+  > `Cfdi.Transform.XsltParser` solo sigue `xsl:include` con `href` **relativo**
+  > e ignora en silencio los remotos (`http://www.sat.gob.mx/...`). El
+  > `cadenaoriginal_4_0.xslt` del SAT trae includes remotos: hay que descargar
+  > cada complemento (Pagos 2.0, Nómina 1.2, IEDU, Carta Porte…) y reescribir
+  > los `href` a rutas locales. Si no, el complemento entra al XML pero NO a la
+  > cadena original y el Sello sale inválido. Compara con
+  > `xsltproc cadenaoriginal_4_0.xslt factura.xml` contra
+  > `CFDI.cadena_original/1`. Ver el README de este paquete y el de
+  > `cfdi_transform`.
   """
   @spec xslt(t(), String.t()) :: t()
   def xslt(%__MODULE__{} = c, path) when is_binary(path),
