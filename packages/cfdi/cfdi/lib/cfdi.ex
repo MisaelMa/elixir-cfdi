@@ -198,6 +198,18 @@ defmodule CFDI do
 
   Espejo de `options.xslt` en el constructor de
   [`CFDI`](https://github.com/MisaelMa/node-cfdi/blob/main/packages/cfdi/xml/src/cfdi.ts#L29) de Node.
+
+  > #### El XSLT debe estar LOCALIZADO {: .warning}
+  >
+  > `Cfdi.Transform.XsltParser` solo sigue `xsl:include` con `href` **relativo**
+  > e ignora en silencio los remotos (`http://www.sat.gob.mx/...`). El
+  > `cadenaoriginal_4_0.xslt` del SAT trae includes remotos: hay que descargar
+  > cada complemento (Pagos 2.0, Nómina 1.2, IEDU, Carta Porte…) y reescribir
+  > los `href` a rutas locales. Si no, el complemento entra al XML pero NO a la
+  > cadena original y el Sello sale inválido. Compara con
+  > `xsltproc cadenaoriginal_4_0.xslt factura.xml` contra
+  > `CFDI.cadena_original/1`. Ver el README de este paquete y el de
+  > `cfdi_transform`.
   """
   @spec xslt(t(), String.t()) :: t()
   def xslt(%__MODULE__{} = c, path) when is_binary(path),
@@ -563,7 +575,15 @@ defmodule CFDI do
     # separar atributos de hijos. Ver `sort_children/3`.
     {orden_explicito, body} = Map.pop(body, :__order__)
 
-    {attr_pairs, child_pairs} = Enum.split_with(body, fn {k, _} -> is_atom(k) end)
+    # Un `nil` es "sin valor": se omite (atributo o hijo). Emitirlo como `attr=""`
+    # rompe la validación XSD de los opcionales con patrón (p. ej. `rfcPago` de
+    # iedu, tipo tRFC). El `""` explícito SÍ se conserva: ningún XSD del SAT lo
+    # exige vacío, pero addendas y complementos no modelados lo traen tal cual y
+    # `from_xml |> to_xml` no debe alterarlos.
+    {attr_pairs, child_pairs} =
+      body
+      |> Enum.reject(fn {_, v} -> is_nil(v) end)
+      |> Enum.split_with(fn {k, _} -> is_atom(k) end)
 
     attrs = Map.new(attr_pairs, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
 
