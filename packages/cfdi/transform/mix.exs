@@ -31,6 +31,7 @@ defmodule Cfdi.Transform.MixProject do
 
   defp package do
     [
+      files: ~w(lib priv mix.exs README.md),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/MisaelMa/elixir-cfdi"},
       maintainers: ["Misael Madrigal"]
