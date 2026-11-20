@@ -318,7 +318,7 @@ defmodule Cfdi.Transform.XsltParser do
   end
 
   defp parse_for_each(attrs, children) do
-    select = attr(attrs, "select")
+    select = attr(attrs, "select") |> then(&if(is_binary(&1), do: String.trim(&1), else: &1))
 
     if is_nil(select) do
       nil
@@ -399,7 +399,9 @@ defmodule Cfdi.Transform.XsltParser do
     end
   end
 
-  defp normalize_select(select), do: String.replace(select, ~r/^\.\//, "")
+  # XPath ignora el whitespace alrededor de la expresion; el XSLT oficial de
+  # CartaPorte trae selects como `./cartaporte31:TiposFigura ` (con espacio final).
+  defp normalize_select(select), do: select |> String.trim() |> String.replace(~r/^\.\//, "")
 
   # Saxy rechaza el BOM UTF-8 (`﻿`) al inicio del documento; xml-js lo
   # tolera. Algunos XSLT del SAT (p. ej. `3.3/complementos/ecc11.xslt`) traen
